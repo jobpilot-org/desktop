@@ -112,31 +112,50 @@ export function ApplicationDetailPage() {
 
   return (
     <div className="page">
-      <div className="page-header">
+      <nav className="back">
+        <Link to="/bewerbungen">← Bewerbungen</Link>
+      </nav>
+      <div className="page-header detail-header">
         <div>
-          <h1>{application.company}</h1>
+          <h1 className="detail-company">{application.company}</h1>
           <p className="subtitle">{application.role}</p>
+          {(application.location || application.workMode) && (
+            <p className="detail-place muted">
+              {[
+                application.location,
+                application.workMode && WORK_MODE_LABELS[application.workMode],
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          )}
         </div>
-        <div className="toolbar">
-          <select
-            value={application.status}
-            onChange={(e) => changeStatus(e.target.value as ApplicationStatus)}
-            aria-label="Status ändern"
-          >
-            {APPLICATION_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-          <button onClick={() => navigate(`/bewerbung/${id}/bearbeiten`)}>
-            Bearbeiten
-          </button>
-          <button className="danger" onClick={archive}>
-            Löschen
-          </button>
-        </div>
+        <button onClick={() => navigate(`/bewerbung/${id}/bearbeiten`)}>
+          Bearbeiten
+        </button>
       </div>
+
+      <div className="chips status-chips" role="group" aria-label="Status">
+        {APPLICATION_STATUSES.map((status) => (
+          <button
+            key={status}
+            type="button"
+            className="chip"
+            aria-pressed={status === application.status}
+            onClick={() => changeStatus(status)}
+          >
+            <span className={`dot status-${status}`} />
+            {STATUS_LABELS[status]}
+          </button>
+        ))}
+      </div>
+
+      {application.nextStep && (
+        <section className="next-step">
+          <span className="jp-eyebrow">Nächster Schritt</span>
+          <p>{application.nextStep}</p>
+        </section>
+      )}
 
       <div className="columns">
         <div className="stack">
@@ -182,12 +201,6 @@ export function ApplicationDetailPage() {
                       {hostOf(application.jobUrl)}
                     </a>
                   </dd>
-                </>
-              )}
-              {application.nextStep && (
-                <>
-                  <dt>Nächster Schritt</dt>
-                  <dd>{application.nextStep}</dd>
                 </>
               )}
             </dl>
@@ -338,6 +351,10 @@ export function ApplicationDetailPage() {
           )}
         </div>
       </div>
+
+      <button className="danger delete-button" onClick={archive}>
+        Bewerbung löschen
+      </button>
 
       {dialog?.kind === 'appointment' && (
         <AppointmentDialog

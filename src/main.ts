@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeTheme, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 
@@ -23,8 +23,9 @@ const createWindow = () => {
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'JobPilot',
-    backgroundColor: '#f6f7f9',
+    title: 'jobpilot',
+    // Hintergrund aus jobpilot.css (--jp-background), damit beim Öffnen nichts aufblitzt
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#151a17' : '#f4f6f2',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,

@@ -40,7 +40,19 @@ export function OverviewPage() {
 
   return (
     <div className="page">
-      <h1>Übersicht</h1>
+      <p className="jp-eyebrow overview-eyebrow">
+        Dein Karriere-Dashboard ·{' '}
+        {new Intl.DateTimeFormat('de-DE', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        }).format(new Date())}
+      </p>
+      <h1 className="overview-title">
+        Deine Suche,
+        <br />
+        mit Überblick.
+      </h1>
 
       <div className="stats">
         {STATUS_FILTERS.filter((filter) => filter !== 'all').map((filter) => (

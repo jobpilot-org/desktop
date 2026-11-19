@@ -111,8 +111,20 @@ export function ApplicationsPage() {
   return (
     <div className="page page-wide">
       <div className="page-header">
-        <h1>Bewerbungen</h1>
-        <div className="toolbar">
+        <div>
+          <p className="jp-eyebrow">Deine Pipeline</p>
+          <h1>Bewerbungen</h1>
+        </div>
+        <button
+          type="button"
+          className="jp-icon-button"
+          aria-label="Neue Bewerbung"
+          title="Neue Bewerbung"
+          onClick={() => navigate('/bewerbung/neu')}
+        >
+          +
+        </button>
+        <div className="toolbar wide-toolbar">
           <input
             type="search"
             placeholder="Suchen nach Firma, Position, Ort …"

@@ -43,6 +43,7 @@ export function SettingsPage() {
 
   return (
     <div className="page">
+      <p className="jp-eyebrow">App</p>
       <h1>Einstellungen</h1>
 
       <Section title="Erinnerungen">
@@ -87,7 +88,7 @@ export function SettingsPage() {
             </label>
             <p className="muted wide">
               Diese Einstellungen gelten für dein Konto und damit für alle
-              JobPilot-Apps.
+              jobpilot-Apps.
             </p>
           </div>
         )}
@@ -103,7 +104,7 @@ export function SettingsPage() {
           Fällige Erinnerungen als Systembenachrichtigung anzeigen
         </label>
         <p className="muted">
-          Gilt nur für diesen Rechner und nur, solange JobPilot geöffnet ist.
+          Gilt nur für diesen Rechner und nur, solange jobpilot geöffnet ist.
         </p>
       </Section>
 

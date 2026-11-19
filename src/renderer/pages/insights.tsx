@@ -31,6 +31,7 @@ export function InsightsPage() {
   if (!responses.submitted) {
     return (
       <div className="page">
+        <p className="jp-eyebrow">Deine Zahlen</p>
         <h1>Auswertung</h1>
         <Empty>
           Sobald die erste Bewerbung abgeschickt ist, erscheinen hier
@@ -42,6 +43,7 @@ export function InsightsPage() {
 
   return (
     <div className="page">
+      <p className="jp-eyebrow">Deine Zahlen</p>
       <h1>Auswertung</h1>
 
       <div className="stats">

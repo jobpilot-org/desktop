@@ -127,12 +127,12 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="card">
-      <header className="card-header">
+    <section className="section">
+      <header className="section-header">
         <h2>{title}</h2>
         {action}
       </header>
-      {children}
+      <div className="card">{children}</div>
     </section>
   );
 }

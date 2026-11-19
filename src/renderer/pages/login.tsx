@@ -37,9 +37,11 @@ export function LoginPage() {
 
   return (
     <div className="login">
-      <form className="card login-card" onSubmit={submit}>
-        <h1>JobPilot</h1>
-        <p className="muted">Melde dich an, um deine Bewerbungen zu sehen.</p>
+      <form className="login-card" onSubmit={submit}>
+        <h1>
+          jobpilot<span className="jp-brand__dot">.</span>
+        </h1>
+        <p className="muted">Bitte melde dich an.</p>
         <Field label="E-Mail">
           <input
             type="email"

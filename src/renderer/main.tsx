@@ -11,6 +11,7 @@ import { InsightsPage } from './pages/insights';
 import { LoginPage } from './pages/login';
 import { OverviewPage } from './pages/overview';
 import { SettingsPage } from './pages/settings';
+import '../theme/jobpilot.css';
 import './styles.css';
 import { ToastProvider } from './ui';
 

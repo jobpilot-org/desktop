@@ -1,38 +1,49 @@
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { NavLink, Outlet, useLocation } from 'react-router';
 
 import { useApp } from './app-context';
 import { useReminderService } from './use-reminder-service';
 
-const NAV = [
+const NAV: { to: string; label: string; end: boolean; also?: string }[] = [
   { to: '/', label: 'Übersicht', end: true },
-  { to: '/bewerbungen', label: 'Bewerbungen', end: false },
+  // Auch Detailseite und Formular (/bewerbung/…) gehören zum Tab „Bewerbungen“
+  { to: '/bewerbungen', label: 'Bewerbungen', end: false, also: '/bewerbung/' },
   { to: '/auswertung', label: 'Auswertung', end: false },
   { to: '/einstellungen', label: 'Einstellungen', end: false },
 ];
 
+/** Kopfzeile wie die Web-Version der mobile-app (app-tabs.web.tsx): Wortmarke, dann die Tabs */
 export function Layout() {
   const { session } = useApp();
-  const navigate = useNavigate();
+  const { pathname } = useLocation();
   useReminderService();
 
   return (
     <div className="shell">
-      <nav className="sidebar" aria-label="Hauptnavigation">
-        <div className="brand">JobPilot</div>
-        <button className="primary" onClick={() => navigate('/bewerbung/neu')}>
-          + Neue Bewerbung
-        </button>
-        <ul>
+      <header className="jp-topbar">
+        <nav className="jp-topbar__inner" aria-label="Hauptnavigation">
+          <NavLink to="/" end className="jp-brand">
+            jobpilot<span className="jp-brand__dot">.</span>
+          </NavLink>
           {NAV.map((item) => (
-            <li key={item.to}>
-              <NavLink to={item.to} end={item.end}>
-                {item.label}
-              </NavLink>
-            </li>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                isActive ||
+                (item.also !== undefined && pathname.startsWith(item.also))
+                  ? 'jp-tab is-active'
+                  : 'jp-tab'
+              }
+            >
+              {item.label}
+            </NavLink>
           ))}
-        </ul>
-        <div className="sidebar-footer">{session?.user.email}</div>
-      </nav>
+          <span className="topbar-account" title={session?.user.email}>
+            {session?.user.email}
+          </span>
+        </nav>
+      </header>
       <main className="content">
         <Outlet />
       </main>
