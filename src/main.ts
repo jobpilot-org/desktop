@@ -1,43 +1,79 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+// Windows-Installer (Squirrel) legt Verknüpfungen an und beendet die App danach wieder.
 if (started) {
   app.quit();
 }
 
+// Unter Windows erscheinen Benachrichtigungen nur mit gesetzter App-ID.
+app.setAppUserModelId('de.jobpilot.desktop');
+
+let mainWindow: BrowserWindow | null = null;
+
+/** Nur http(s) geht an den Standardbrowser – nie file:, javascript: o. Ä. */
+function openExternal(url: string) {
+  if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
+}
+
 const createWindow = () => {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 900,
+    minHeight: 600,
+    title: 'JobPilot',
+    backgroundColor: '#f6f7f9',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false,
     },
   });
 
-  // and load the index.html of the app.
+  // Links in Stellenanzeigen & Co. öffnen im Browser statt in einem neuen App-Fenster.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    openExternal(url);
+    return { action: 'deny' };
+  });
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const ownOrigin = MAIN_WINDOW_VITE_DEV_SERVER_URL
+      ? new URL(MAIN_WINDOW_VITE_DEV_SERVER_URL).origin
+      : 'file://';
+    if (!url.startsWith(ownOrigin)) {
+      event.preventDefault();
+      openExternal(url);
+    }
+  });
+
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     mainWindow.loadFile(
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
   }
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// Klick auf eine Benachrichtigung holt das Fenster nach vorn.
+ipcMain.on('window:focus', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+});
+
 app.whenReady().then(() => {
   createWindow();
 
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
+  // macOS: Klick aufs Dock-Symbol öffnet wieder ein Fenster.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -45,14 +81,9 @@ app.whenReady().then(() => {
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// Unter macOS bleibt die App aktiv, bis sie mit Cmd + Q beendet wird.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

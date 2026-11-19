@@ -1,0 +1,160 @@
+import type {
+  ApplicationInput,
+  ApplicationStatus,
+  JobApplication,
+  Priority,
+  StatusEvent,
+  WorkMode,
+} from '@/domain/application';
+import type {
+  Appointment,
+  AppointmentKind,
+  Contact,
+  ContactInput,
+  Note,
+} from '@/domain/details';
+import type { Reminder, ReminderKind } from '@/domain/reminders';
+
+import type { Database } from './database.types';
+
+// Spalten der Datenbank (snake_case, null) ↔ Domain-Typen (camelCase, fehlende Felder).
+// Die Check-Constraints der Migration lassen für Status, Art usw. nur die Werte aus `domain/` zu,
+// deshalb sind die Typumwandlungen unten sicher.
+
+export type Tables = Database['public']['Tables'];
+export type ApplicationRow = Tables['applications']['Row'];
+export type StatusEventRow = Tables['status_events']['Row'];
+export type ContactRow = Tables['contacts']['Row'];
+export type NoteRow = Tables['notes']['Row'];
+export type AppointmentRow = Tables['appointments']['Row'];
+export type ReminderRow = Tables['reminders']['Row'];
+
+/**
+ * Postgres liefert `timestamptz` als `…+00:00`; die Domain vergleicht ISO-Strings mit `Z`, wie sie
+ * `Date.toISOString()` erzeugt. Ohne Umwandlung würden Sortierung und Erinnerungsschlüssel kippen.
+ */
+export function toIsoTimestamp(value: string): string {
+  return new Date(value).toISOString();
+}
+
+const optionalTimestamp = (value: string | null) =>
+  value === null ? undefined : toIsoTimestamp(value);
+
+export function toJobApplication(row: ApplicationRow): JobApplication {
+  return {
+    id: row.id,
+    company: row.company,
+    role: row.role,
+    location: row.location,
+    workMode: (row.work_mode ?? undefined) as WorkMode | undefined,
+    appliedAt: row.applied_at,
+    status: row.status as ApplicationStatus,
+    priority: row.priority as Priority,
+    source: row.source ?? undefined,
+    jobUrl: row.job_url ?? undefined,
+    salaryMin: row.salary_min ?? undefined,
+    salaryMax: row.salary_max ?? undefined,
+    nextStep: row.next_step ?? undefined,
+    jobDescription: row.job_description ?? undefined,
+  };
+}
+
+/** Fehlende optionale Felder werden ausdrücklich geleert, damit ein Update sie löscht */
+export function toApplicationColumns(input: ApplicationInput) {
+  return {
+    company: input.company,
+    role: input.role,
+    location: input.location,
+    work_mode: input.workMode ?? null,
+    applied_at: input.appliedAt,
+    status: input.status,
+    priority: input.priority,
+    source: input.source ?? null,
+    job_url: input.jobUrl ?? null,
+    salary_min: input.salaryMin ?? null,
+    salary_max: input.salaryMax ?? null,
+    next_step: input.nextStep ?? null,
+    job_description: input.jobDescription ?? null,
+  } satisfies Tables['applications']['Update'];
+}
+
+export function toStatusEvent(row: StatusEventRow): StatusEvent {
+  return {
+    from: row.from_status as ApplicationStatus | null,
+    to: row.to_status as ApplicationStatus,
+    at: toIsoTimestamp(row.at),
+  };
+}
+
+export function toContact(row: ContactRow): Contact {
+  return {
+    id: row.id,
+    applicationId: row.application_id,
+    name: row.name,
+    role: row.role ?? undefined,
+    email: row.email ?? undefined,
+    phone: row.phone ?? undefined,
+    linkedinUrl: row.linkedin_url ?? undefined,
+  };
+}
+
+export function toContactColumns(input: ContactInput) {
+  return {
+    name: input.name,
+    role: input.role ?? null,
+    email: input.email ?? null,
+    phone: input.phone ?? null,
+    linkedin_url: input.linkedinUrl ?? null,
+  } satisfies Tables['contacts']['Update'];
+}
+
+export function toNote(row: NoteRow): Note {
+  return {
+    id: row.id,
+    applicationId: row.application_id,
+    body: row.body,
+    createdAt: toIsoTimestamp(row.created_at),
+  };
+}
+
+export function toAppointment(row: AppointmentRow): Appointment {
+  return {
+    id: row.id,
+    applicationId: row.application_id,
+    kind: row.kind as AppointmentKind,
+    startsAt: toIsoTimestamp(row.starts_at),
+    location: row.location ?? undefined,
+    notes: row.notes ?? undefined,
+  };
+}
+
+export function toReminder(row: ReminderRow): Reminder {
+  return {
+    key: row.key,
+    applicationId: row.application_id,
+    kind: row.kind as ReminderKind,
+    dueAt: toIsoTimestamp(row.due_at),
+    title: row.title,
+    body: row.body,
+    doneAt: optionalTimestamp(row.done_at),
+    snoozedUntil: optionalTimestamp(row.snoozed_until),
+  };
+}
+
+/** Supabase meldet Fehler als Rückgabewert; hier werden sie zu Ausnahmen */
+export function unwrap<T>({ data, error }: { data: T; error: unknown }): T {
+  if (error) throw error;
+  return data;
+}
+
+/** Wie unwrap, für Listenabfragen: ohne Fehler ist das Ergebnis eine (ggf. leere) Liste */
+export function unwrapList<T>({
+  data,
+  error,
+}: {
+  data: T[] | null;
+  error: unknown;
+}): T[] {
+  if (error) throw error;
+  return data ?? [];
+}
