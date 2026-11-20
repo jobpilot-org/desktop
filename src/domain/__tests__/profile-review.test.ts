@@ -50,12 +50,12 @@ const profile: Profile = {
 
 describe('reviewRequest', () => {
   it('schickt keine Kontaktdaten, nur ob sie vorhanden sind', () => {
-    const request = reviewRequest(profile, '  Tech Lead ');
+    const request = reviewRequest(profile);
     const json = JSON.stringify(request);
     for (const secret of ['Erika', 'Muster', 'Hauptstr', '10115', '030 123', 'erika@', '1990', 'Hamburg']) {
       expect(json).not.toContain(secret);
     }
-    expect(request.targetRole).toBe('Tech Lead');
+    expect(request).not.toHaveProperty('targetRole');
     expect(request.profile.contact).toEqual({
       address: true,
       phone: true,
@@ -67,9 +67,6 @@ describe('reviewRequest', () => {
     expect(request.profile.skills[0]).toEqual({ id: 's1', category: 'Sprachen', items: 'TS, JS' });
   });
 
-  it('lässt eine leere Zielposition weg', () => {
-    expect(reviewRequest(profile, '   ')).not.toHaveProperty('targetRole');
-  });
 });
 
 describe('canReview', () => {

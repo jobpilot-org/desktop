@@ -17,7 +17,7 @@ import {
 import { ProfileReviewError, reviewProfile } from '@/data/profile-review';
 
 import { useApp, useData } from '../app-context';
-import { Empty, Field, LoadError, Section, useAction } from '../ui';
+import { Empty, LoadError, Section, useAction } from '../ui';
 import { useProfile } from './profile';
 
 const CONSENT_TEXT =
@@ -28,7 +28,7 @@ type Step =
   | { kind: 'running' }
   | { kind: 'result'; review: ProfileReview };
 
-/** Profil von der KI bewerten lassen: Punktzahl, Stärken, Vorschläge zum Übernehmen */
+/** Profil von der KI auf grobe inhaltliche Fehler prüfen: Punktzahl, Stärken, Korrekturen zum Übernehmen */
 export function ProfileReviewPage() {
   const { state, profile } = useProfile();
   if (state.status === 'error' && !profile) {
@@ -47,7 +47,6 @@ function ProfileReviewContent({ profile }: { profile: Profile }) {
   const navigate = useNavigate();
   const keyState = useData((r) => r.aiKey.status());
   const [step, setStep] = useState<Step>({ kind: 'start' });
-  const [targetRole, setTargetRole] = useState('');
 
   const missingKey = keyState.data?.configured === false;
   const reviewable = canReview(profile);
@@ -59,7 +58,7 @@ function ProfileReviewContent({ profile }: { profile: Profile }) {
     }
     setStep({ kind: 'running' });
     try {
-      const review = await reviewProfile(supabase, profile, targetRole);
+      const review = await reviewProfile(supabase, profile);
       setStep({ kind: 'result', review });
     } catch (error) {
       setStep({
@@ -80,10 +79,10 @@ function ProfileReviewContent({ profile }: { profile: Profile }) {
       {step.kind === 'start' && (
         <>
           <p className="muted">
-            Die KI bewertet deinen Lebenslauf, nennt Stärken und schlägt
-            Verbesserungen vor. Wo sie einen fertigen Text vorschlägt –
-            Berufsbezeichnung, Kurzprofil, Stichpunkte oder Kenntnisse –,
-            übernimmst du ihn mit einem Klick.
+            Die KI prüft deinen Lebenslauf auf grobe inhaltliche Fehler –
+            Widersprüche, unplausible Zeiträume, Lücken, fehlende Angaben,
+            Doppelungen und Tippfehler. Wo sie eine fertige Korrektur
+            vorschlägt, übernimmst du sie mit einem Klick.
           </p>
           {missingKey && (
             <p className="error-box">
@@ -99,39 +98,20 @@ function ProfileReviewContent({ profile }: { profile: Profile }) {
             </p>
           )}
           {step.error && <p className="error-box">{step.error}</p>}
-          <form
-            className="section"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void start();
-            }}
-          >
-            <Field label="Zielposition (optional)">
-              <input
-                value={targetRole}
-                maxLength={200}
-                placeholder="z. B. Senior Frontend-Entwickler"
-                onChange={(e) => setTargetRole(e.target.value)}
-              />
-            </Field>
-            <p className="muted small">
-              Mit Zielposition prüft die KI auch, wie gut dein Profil dazu
-              passt.
-            </p>
-            <div className="wizard-buttons">
-              <button type="button" onClick={() => navigate('/profil')}>
-                Abbrechen
-              </button>
-              <span className="spacer" />
-              <button
-                type="submit"
-                className="primary"
-                disabled={missingKey || !reviewable}
-              >
-                Profil prüfen
-              </button>
-            </div>
-          </form>
+          <div className="wizard-buttons">
+            <button type="button" onClick={() => navigate('/profil')}>
+              Abbrechen
+            </button>
+            <span className="spacer" />
+            <button
+              type="button"
+              className="primary"
+              disabled={missingKey || !reviewable}
+              onClick={() => void start()}
+            >
+              Profil prüfen
+            </button>
+          </div>
           <p className="muted small section">{CONSENT_TEXT}</p>
         </>
       )}
@@ -185,11 +165,11 @@ function ReviewResult({
             ))}
           </ul>
         ) : (
-          <Empty>Keine besonderen Stärken genannt.</Empty>
+          <Empty>Keine Stärken genannt.</Empty>
         )}
       </Section>
 
-      <Section title="Verbesserungsvorschläge">
+      <Section title="Gefundene Fehler">
         {review.suggestions.length ? (
           <ul className="rows">
             {review.suggestions.map((suggestion, i) => (
@@ -199,7 +179,7 @@ function ReviewResult({
             ))}
           </ul>
         ) : (
-          <Empty>Keine Vorschläge – dein Profil ist rund.</Empty>
+          <Empty>Keine groben Fehler gefunden.</Empty>
         )}
       </Section>
 

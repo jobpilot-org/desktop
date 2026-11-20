@@ -11,7 +11,8 @@ import {
   type ProfileSkillInput,
 } from '@/domain/profile';
 
-// Profil-Check per KI: Bewertung, Stärken und Verbesserungsvorschläge zum Profil. Die Edge Function
+// Profil-Check per KI auf grobe inhaltliche Fehler: Bewertung, Stärken und Korrekturvorschläge,
+// ohne Bezug auf eine Stelle (das Zuschneiden auf eine Stellenanzeige ist ein eigenes Feature). Die Edge Function
 // `profile-review` (backend/supabase/functions/profile-review) erwartet `ReviewRequest` und liefert
 // eine Antwort, die `parseProfileReview` prüft. Vorschläge mit Ersatztext lassen sich einzeln
 // übernehmen (`applyRewrite`).
@@ -39,9 +40,9 @@ type ReviewEntry = {
   period: string;
 };
 
-export type ReviewRequest = { profile: ReviewProfile; targetRole?: string };
+export type ReviewRequest = { profile: ReviewProfile };
 
-export function reviewRequest(profile: Profile, targetRole = ''): ReviewRequest {
+export function reviewRequest(profile: Profile): ReviewRequest {
   const entry = (e: ProfileEntry): ReviewEntry => ({
     id: e.id,
     title: e.title,
@@ -50,7 +51,6 @@ export function reviewRequest(profile: Profile, targetRole = ''): ReviewRequest 
     description: e.description,
     period: formatPeriod(e),
   });
-  const role = targetRole.trim();
   return {
     profile: {
       headline: profile.headline,
@@ -67,7 +67,6 @@ export function reviewRequest(profile: Profile, targetRole = ''): ReviewRequest 
       skills: profile.skills.map(({ id, category, items }) => ({ id, category, items })),
       languages: profile.languages.map(({ language, level }) => ({ language, level })),
     },
-    ...(role ? { targetRole: role } : {}),
   };
 }
 

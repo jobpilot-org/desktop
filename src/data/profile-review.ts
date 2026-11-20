@@ -40,20 +40,19 @@ export class ProfileReviewError extends Error {
 }
 
 /**
- * Lässt das Profil von der KI bewerten (Edge Function `profile-review`). Name und Kontaktdaten
- * gehen nicht mit; gespeichert wird nichts.
+ * Lässt das Profil von der KI auf grobe inhaltliche Fehler prüfen (Edge Function
+ * `profile-review`). Name und Kontaktdaten gehen nicht mit; gespeichert wird nichts.
  */
 export async function reviewProfile(
   supabase: Supabase,
   profile: Profile,
-  targetRole?: string,
 ): Promise<ProfileReview> {
   let data: { review: unknown } | null;
   try {
     data = await invokeAiFunction<{ review: unknown }>(
       supabase,
       'profile-review',
-      reviewRequest(profile, targetRole),
+      reviewRequest(profile),
     );
   } catch (error) {
     throw error instanceof AiFunctionError
