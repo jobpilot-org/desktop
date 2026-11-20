@@ -1,22 +1,14 @@
-import { FunctionsHttpError } from '@supabase/supabase-js';
-
 import { parseProfileDraft, type ProfileInput } from '@/domain/profile';
 
+import {
+  AiFunctionError,
+  invokeAiFunction,
+  type AiFunctionErrorCode,
+} from './ai-function';
 import type { Supabase } from './supabase';
 
 /** Fehlercodes der Edge Function `cv-import` (backend/supabase/functions/cv-import) */
-export type CvImportErrorCode =
-  | 'unauthorized'
-  | 'missing-key'
-  | 'invalid-key'
-  | 'bad-request'
-  | 'too-large'
-  | 'refused'
-  | 'incomplete'
-  | 'ai-unavailable'
-  | 'unavailable'
-  | 'offline'
-  | 'invalid-response';
+export type CvImportErrorCode = AiFunctionErrorCode;
 
 const MESSAGES: Record<CvImportErrorCode, string> = {
   unauthorized: 'Deine Anmeldung ist abgelaufen. Bitte melde dich neu an.',
@@ -67,21 +59,15 @@ export async function importCv(
   pdf: ArrayBuffer,
 ): Promise<ProfileInput> {
   if (pdf.byteLength > MAX_CV_BYTES) throw new CvImportError('too-large');
-  const { data, error } = await supabase.functions.invoke<{ profile: unknown }>(
-    'cv-import',
-    { body: { pdf: toBase64(pdf) } },
-  );
-  if (error) {
-    if (error instanceof FunctionsHttpError) {
-      const body = (await (error.context as Response)
-        .json()
-        .catch(() => null)) as { error?: string } | null;
-      const code = body?.error;
-      throw new CvImportError(
-        code && code in MESSAGES ? (code as CvImportErrorCode) : 'unavailable',
-      );
-    }
-    throw new CvImportError('offline');
+  let data: { profile: unknown } | null;
+  try {
+    data = await invokeAiFunction<{ profile: unknown }>(supabase, 'cv-import', {
+      pdf: toBase64(pdf),
+    });
+  } catch (error) {
+    throw error instanceof AiFunctionError
+      ? new CvImportError(error.code)
+      : error;
   }
   try {
     return parseProfileDraft(data?.profile);

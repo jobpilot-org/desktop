@@ -13,6 +13,7 @@ import { OverviewPage } from './pages/overview';
 import { ProfilePage } from './pages/profile';
 import { ProfileAssistantPage } from './pages/profile-assistant';
 import { ProfileImportPage } from './pages/profile-import';
+import { ProfileReviewPage } from './pages/profile-review';
 import { RegisterPage } from './pages/register';
 import { SettingsPage } from './pages/settings';
 import { WelcomePage } from './pages/welcome';
@@ -49,6 +50,7 @@ function App() {
         <Route path="profil" element={<ProfilePage />} />
         <Route path="profil/assistent" element={<ProfileAssistantPage />} />
         <Route path="profil/import" element={<ProfileImportPage />} />
+        <Route path="profil/check" element={<ProfileReviewPage />} />
         <Route path="willkommen" element={<WelcomePage />} />
         <Route path="einstellungen" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

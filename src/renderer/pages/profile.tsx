@@ -175,6 +175,9 @@ function ProfileContent({
           <button type="button" onClick={() => navigate('/profil/import')}>
             PDF importieren
           </button>
+          <button type="button" onClick={() => navigate('/profil/check')}>
+            KI-Check
+          </button>
         </div>
       </div>
       <p className="muted">
