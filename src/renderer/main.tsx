@@ -10,6 +10,7 @@ import { ApplicationsPage } from './pages/applications';
 import { InsightsPage } from './pages/insights';
 import { LoginPage } from './pages/login';
 import { OverviewPage } from './pages/overview';
+import { RegisterPage } from './pages/register';
 import { SettingsPage } from './pages/settings';
 import '../theme/jobpilot.css';
 import './styles.css';
@@ -20,7 +21,14 @@ import { ToastProvider } from './ui';
 function App() {
   const { session } = useApp();
   if (session === undefined) return null;
-  if (!session) return <LoginPage />;
+  if (!session) {
+    return (
+      <Routes>
+        <Route path="registrieren" element={<RegisterPage />} />
+        <Route path="*" element={<LoginPage />} />
+      </Routes>
+    );
+  }
 
   return (
     <Routes>

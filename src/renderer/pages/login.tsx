@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
 
 // Dasselbe Icon wie das App-Symbol (packagerConfig.icon); alt bleibt leer, der Schriftzug darunter
 // nennt den Namen schon
@@ -6,7 +7,7 @@ import appIcon from '../../../assets/icon.png';
 import { useApp } from '../app-context';
 import { Field } from '../ui';
 
-/** Supabase-Meldungen auf Deutsch; Konten werden im Supabase-Dashboard angelegt */
+/** Supabase-Meldungen auf Deutsch */
 function loginMessage(code: string | undefined, message: string) {
   if (code === 'invalid_credentials') return 'E-Mail oder Passwort ist falsch.';
   if (code === 'email_not_confirmed')
@@ -69,6 +70,9 @@ export function LoginPage() {
         <button className="primary" type="submit" disabled={busy}>
           {busy ? 'Anmelden …' : 'Anmelden'}
         </button>
+        <Link className="login-switch" to="/registrieren">
+          Neuen Benutzer anlegen
+        </Link>
       </form>
     </div>
   );

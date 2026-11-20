@@ -919,6 +919,25 @@ a.stat:hover {
   font-size: 14px;
 }
 
+/* Wechsel zwischen Anmeldung und Registrierung, mittig unter dem Hauptknopf */
+.login-switch {
+  justify-self: center;
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-switch:hover {
+  text-decoration: underline;
+}
+
+.login-name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
 .toasts {
   position: fixed;
   bottom: 24px;

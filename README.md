@@ -6,7 +6,7 @@ nichts außer der Login-Session und der Benachrichtigungs-Einstellung gespeicher
 
 ## Funktionen
 
-- Anmeldung mit Supabase-Konto (Sign-ups sind abgeschaltet, Konten im Dashboard anlegen)
+- Anmeldung mit Supabase-Konto und „Neuen Benutzer anlegen“ (Vorname, Nachname, E-Mail, Passwort)
 - Übersicht: Zähler je Filter, heute fällige Erinnerungen, Termine der nächsten 14 Tage
 - Bewerbungen als Tabelle (Suche, Filter, Sortierung) oder Board – Karten per Drag & Drop in eine
   andere Spalte ziehen ändert den Status („Abgeschlossen“ setzt „Abgesagt“)
