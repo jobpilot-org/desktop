@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 
+// Dasselbe Icon wie das App-Symbol (packagerConfig.icon); alt bleibt leer, der Schriftzug darunter
+// nennt den Namen schon
+import appIcon from '../../../assets/icon.png';
 import { useApp } from '../app-context';
 import { Field } from '../ui';
 
@@ -38,6 +41,7 @@ export function LoginPage() {
   return (
     <div className="login">
       <form className="login-card" onSubmit={submit}>
+        <img className="login-icon" src={appIcon} alt="" />
         <h1>
           jobpilot<span className="jp-brand__dot">.</span>
         </h1>
