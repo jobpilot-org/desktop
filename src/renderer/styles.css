@@ -961,32 +961,6 @@ a.stat:hover {
   color: var(--text);
 }
 
-/* Passwortregeln unter dem Feld, erfüllte in Akzentfarbe */
-.password-rules {
-  display: grid;
-  gap: 3px;
-  margin: -6px 0 15px;
-  padding: 0;
-  list-style: none;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 17px;
-}
-
-.password-rules li {
-  display: flex;
-  gap: 6px;
-}
-
-.password-rules span[aria-hidden] {
-  width: 10px;
-  text-align: center;
-}
-
-.password-rules .is-met {
-  color: var(--accent-link);
-}
-
 .login-name-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

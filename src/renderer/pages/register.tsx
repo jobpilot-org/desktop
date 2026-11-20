@@ -5,7 +5,6 @@ import appIcon from '../../../assets/icon.png';
 import {
   emptyRegistrationForm,
   parseRegistrationForm,
-  PASSWORD_RULES,
   type RegistrationFormField,
   type RegistrationFormValues,
 } from '@/domain/forms';
@@ -95,27 +94,8 @@ export function RegisterPage() {
           <input type="email" autoComplete="username" {...input('email')} />
         </Field>
         <Field label="Passwort" error={errors.password}>
-          <PasswordInput
-            autoComplete="new-password"
-            aria-describedby="password-rules"
-            {...input('password')}
-          />
+          <PasswordInput autoComplete="new-password" {...input('password')} />
         </Field>
-        {/* Regeln vorab sichtbar und beim Tippen abgehakt, nicht erst als Fehler nach dem Absenden */}
-        <ul id="password-rules" className="password-rules">
-          {PASSWORD_RULES.map((rule) => {
-            const met = rule.test(values.password);
-            return (
-              <li key={rule.label} className={met ? 'is-met' : undefined}>
-                <span aria-hidden="true">{met ? '✓' : '•'}</span>
-                {rule.label}
-                <span className="jp-visually-hidden">
-                  {met ? ' (erfüllt)' : ' (fehlt noch)'}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
         <Field label="Passwort wiederholen" error={errors.passwordRepeat}>
           <PasswordInput
             autoComplete="new-password"
