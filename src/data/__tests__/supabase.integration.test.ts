@@ -1,7 +1,9 @@
 import { profileToInput } from '@/domain/profile';
 
 import { createRepositories } from '../index';
-import { createSupabase } from '../supabase';
+import { createClient } from '@supabase/supabase-js';
+
+import type { Database } from '../database.types';
 
 // Prüft die Repositories gegen die lokale Supabase aus ../backend – echtes SQL, echte RLS.
 // Voraussetzung: `supabase start` in ../backend und das lokale Testkonto (siehe README).
@@ -9,7 +11,13 @@ import { createSupabase } from '../supabase';
 const enabled = process.env.SUPABASE_INTEGRATION === '1';
 
 describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
-  const supabase = createSupabase({ auth: { persistSession: false } });
+  // Immer die lokale Instanz – nie das gehostete Projekt, auch wenn .env darauf zeigt: Der Test
+  // legt Daten an und löscht sie wieder.
+  const supabase = createClient<Database>(
+    'http://127.0.0.1:54321',
+    'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
+    { auth: { persistSession: false } },
+  );
   const repos = createRepositories(supabase);
   let id: string;
 

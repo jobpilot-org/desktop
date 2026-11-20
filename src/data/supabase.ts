@@ -4,14 +4,16 @@ import type { Database } from './database.types';
 
 export type Supabase = SupabaseClient<Database>;
 
-// Standard ist die lokale Instanz aus ../backend (`supabase start`, Werte über `supabase status`).
-// Für eine gehostete Instanz VITE_SUPABASE_URL und VITE_SUPABASE_PUBLISHABLE_KEY setzen (.env).
-// Der Publishable Key ist öffentlich; er gibt nur frei, was RLS dem Aufrufer erlaubt.
+// Standard ist das gehostete Projekt `dev` – die zentrale Datenbank aller Apps. Eine andere
+// Instanz (z. B. die lokale aus ../backend) über VITE_SUPABASE_URL und
+// VITE_SUPABASE_PUBLISHABLE_KEY in .env. Der Publishable Key ist öffentlich; er gibt nur frei,
+// was RLS dem Aufrufer erlaubt.
 export const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL ?? 'http://127.0.0.1:54321';
+  import.meta.env.VITE_SUPABASE_URL ??
+  'https://mczpmqhbhvvqysgwdbgg.supabase.co';
 export const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-  'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
+  'sb_publishable_F1D8l9dBkNsnanXX0PyOFw_ae5Paos5';
 
 /** Die Session liegt im localStorage des Fensters und überdauert so einen Neustart der App */
 export function createSupabase(
