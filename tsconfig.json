@@ -3,12 +3,17 @@
     "target": "ESNext",
     "module": "preserve",
     "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "strict": true,
     "noImplicitAny": true,
     "sourceMap": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["vitest/globals", "vite/client"],
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src/**/*", "*.ts", "*.mts"]
 }
