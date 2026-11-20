@@ -1111,6 +1111,19 @@ a.stat:hover {
   max-width: 420px;
 }
 
+/* App-Icon links neben der Wortmarke in der Kopfzeile (layout.tsx), Ecken wie .login-icon */
+.topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}
+
 /* App-Icon über dem Schriftzug, Ecken wie beim macOS-/iOS-Symbol */
 .login-icon {
   width: 72px;

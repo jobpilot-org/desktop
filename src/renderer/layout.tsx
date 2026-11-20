@@ -1,5 +1,7 @@
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router';
 
+// App-Symbol wie auf der Anmeldung; alt bleibt leer, die Wortmarke daneben benennt den Link
+import appIcon from '../../assets/icon.png';
 import { useApp, useData } from './app-context';
 import { useReminderService } from './use-reminder-service';
 
@@ -12,7 +14,7 @@ const NAV: { to: string; label: string; end: boolean; also?: string }[] = [
   { to: '/einstellungen', label: 'Einstellungen', end: false },
 ];
 
-/** Kopfzeile wie die Web-Version der mobile-app (app-tabs.web.tsx): Wortmarke, dann die Tabs */
+/** Kopfzeile wie die Web-Version der mobile-app (app-tabs.web.tsx): App-Icon und Wortmarke, dann die Tabs */
 export function Layout() {
   const { session } = useApp();
   const { pathname } = useLocation();
@@ -28,8 +30,11 @@ export function Layout() {
     <div className="shell">
       <header className="jp-topbar">
         <nav className="jp-topbar__inner" aria-label="Hauptnavigation">
-          <NavLink to="/" end className="jp-brand">
-            jobpilot<span className="jp-brand__dot">.</span>
+          <NavLink to="/" end className="jp-brand topbar-brand">
+            <img className="topbar-icon" src={appIcon} alt="" />
+            <span>
+              jobpilot<span className="jp-brand__dot">.</span>
+            </span>
           </NavLink>
           {NAV.map((item) => (
             <NavLink
