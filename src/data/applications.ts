@@ -21,26 +21,11 @@ import type { Supabase } from './supabase';
  * asynchron. RLS beschränkt alle Abfragen auf die Zeilen des angemeldeten Nutzers, `user_id`
  * setzt die Datenbank, `updated_at` ein Trigger.
  *
- * Bewerbung und Statusereignis werden nacheinander geschrieben, nicht in einer Transaktion: Schlägt
- * das zweite Schreiben fehl, fehlt dieser Eintrag im Verlauf.
+ * Den Statusverlauf (`status_events`) schreibt ein Trigger in der Datenbank beim Anlegen und bei
+ * jedem Statuswechsel – in derselben Anweisung, deshalb immer passend. Apps dürfen die Tabelle nur
+ * lesen (Migration `20261119180100_status_event_trigger.sql` in ../backend).
  */
 export function createApplicationsRepository(supabase: Supabase) {
-  async function insertEvent(
-    applicationId: string,
-    from: ApplicationStatus | null,
-    to: ApplicationStatus,
-    at: string,
-  ) {
-    unwrap(
-      await supabase.from('status_events').insert({
-        application_id: applicationId,
-        from_status: from,
-        to_status: to,
-        at,
-      }),
-    );
-  }
-
   async function currentStatus(
     id: string,
   ): Promise<ApplicationStatus | undefined> {
@@ -94,35 +79,25 @@ export function createApplicationsRepository(supabase: Supabase) {
           updated_at: timestamp,
         }),
       );
-      await insertEvent(id, null, input.status, timestamp);
       return { ...input, id };
     },
 
-    /** Speichert alle Felder; ein geänderter Status wird wie bei changeStatus protokolliert */
-    async update(id: string, input: ApplicationInput, now = new Date()) {
-      const current = await currentStatus(id);
-      if (!current) return;
+    /** Speichert alle Felder; einen geänderten Status protokolliert die Datenbank */
+    async update(id: string, input: ApplicationInput) {
       unwrap(
         await supabase
           .from('applications')
           .update(toApplicationColumns(input))
           .eq('id', id),
       );
-      if (current !== input.status) {
-        await insertEvent(id, current, input.status, now.toISOString());
-      }
     },
 
-    /** Ändert den Status und protokolliert den Wechsel. false, wenn sich nichts ändert. */
-    async changeStatus(
-      id: string,
-      to: ApplicationStatus,
-      now = new Date(),
-    ): Promise<boolean> {
+    /** Ändert den Status (die Datenbank protokolliert den Wechsel). false, wenn sich nichts ändert. */
+    async changeStatus(id: string, to: ApplicationStatus): Promise<boolean> {
       const current = await currentStatus(id);
       if (!current || current === to) return false;
       // Nur ändern, wenn der Status noch der gelesene ist – sonst hat ein anderes Gerät
-      // gleichzeitig geändert und das Ereignis würde einen falschen Ausgangsstatus nennen.
+      // gleichzeitig geändert, und „false“ wäre die ehrlichere Antwort.
       const changed = unwrapList(
         await supabase
           .from('applications')
@@ -131,9 +106,7 @@ export function createApplicationsRepository(supabase: Supabase) {
           .eq('status', current)
           .select('id'),
       );
-      if (!changed.length) return false;
-      await insertEvent(id, current, to, now.toISOString());
-      return true;
+      return changed.length > 0;
     },
 
     /** Weiches Löschen: Eintrag verschwindet aus allen Listen, lässt sich aber zurückholen */
