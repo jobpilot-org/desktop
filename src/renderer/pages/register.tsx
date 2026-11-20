@@ -4,15 +4,15 @@ import { Link } from 'react-router';
 import appIcon from '../../../assets/icon.png';
 import {
   emptyRegistrationForm,
-  MIN_PASSWORD_LENGTH,
   parseRegistrationForm,
+  PASSWORD_RULES,
   type RegistrationFormField,
   type RegistrationFormValues,
 } from '@/domain/forms';
 
 import { useApp } from '../app-context';
 import { signUp } from '../sign-up';
-import { Field } from '../ui';
+import { Field, PasswordInput } from '../ui';
 
 export function RegisterPage() {
   const { supabase } = useApp();
@@ -94,19 +94,30 @@ export function RegisterPage() {
         <Field label="E-Mail" error={errors.email}>
           <input type="email" autoComplete="username" {...input('email')} />
         </Field>
-        <Field
-          label={`Passwort (mind. ${MIN_PASSWORD_LENGTH} Zeichen)`}
-          error={errors.password}
-        >
-          <input
-            type="password"
+        <Field label="Passwort" error={errors.password}>
+          <PasswordInput
             autoComplete="new-password"
+            aria-describedby="password-rules"
             {...input('password')}
           />
         </Field>
+        {/* Regeln vorab sichtbar und beim Tippen abgehakt, nicht erst als Fehler nach dem Absenden */}
+        <ul id="password-rules" className="password-rules">
+          {PASSWORD_RULES.map((rule) => {
+            const met = rule.test(values.password);
+            return (
+              <li key={rule.label} className={met ? 'is-met' : undefined}>
+                <span aria-hidden="true">{met ? '✓' : '•'}</span>
+                {rule.label}
+                <span className="jp-visually-hidden">
+                  {met ? ' (erfüllt)' : ' (fehlt noch)'}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
         <Field label="Passwort wiederholen" error={errors.passwordRepeat}>
-          <input
-            type="password"
+          <PasswordInput
             autoComplete="new-password"
             {...input('passwordRepeat')}
           />

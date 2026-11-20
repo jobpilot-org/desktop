@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 // nennt den Namen schon
 import appIcon from '../../../assets/icon.png';
 import { useApp } from '../app-context';
-import { Field } from '../ui';
+import { Field, PasswordInput } from '../ui';
 
 /** Supabase-Meldungen auf Deutsch */
 function loginMessage(code: string | undefined, message: string) {
@@ -58,8 +58,7 @@ export function LoginPage() {
           />
         </Field>
         <Field label="Passwort">
-          <input
-            type="password"
+          <PasswordInput
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

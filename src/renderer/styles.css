@@ -932,6 +932,61 @@ a.stat:hover {
   text-decoration: underline;
 }
 
+/* Passwortfeld mit Augen-Symbol rechts im Feld */
+.password-input {
+  position: relative;
+  display: block;
+}
+
+.password-input input {
+  padding-right: 46px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  color: var(--text);
+}
+
+/* Passwortregeln unter dem Feld, erfüllte in Akzentfarbe */
+.password-rules {
+  display: grid;
+  gap: 3px;
+  margin: -6px 0 15px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.password-rules li {
+  display: flex;
+  gap: 6px;
+}
+
+.password-rules span[aria-hidden] {
+  width: 10px;
+  text-align: center;
+}
+
+.password-rules .is-met {
+  color: var(--accent-link);
+}
+
 .login-name-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
