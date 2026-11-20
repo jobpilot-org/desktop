@@ -6,6 +6,8 @@ import {
   type Profile,
   type ProfileEntry,
   type ProfileEntryInput,
+  type ProfileEntryKind,
+  type ProfileLanguage,
   type ProfilePersonal,
   type ProfileSkill,
   type ProfileSkillInput,
@@ -289,6 +291,75 @@ export function applyRewrite(profile: Profile, rewrite: ReviewRewrite): RewriteC
       const { id: _id, ...input } = skill;
       return { kind: 'skill', skill, input: { ...input, items: rewrite.text } };
     }
+  }
+}
+
+// --- Selbst bearbeiten -----------------------------------------------------------------------
+
+/** Bearbeiten-Dialog des Profils; ohne Eintrag legt er einen neuen an */
+export type ProfileEditTarget =
+  | { kind: 'personal' }
+  | { kind: 'summary' }
+  | { kind: 'entry'; entryKind: ProfileEntryKind; entry?: ProfileEntry }
+  | { kind: 'skill'; skill?: ProfileSkill }
+  | { kind: 'language'; language?: ProfileLanguage };
+
+/**
+ * Wo der Nutzer einen Vorschlag selbst umsetzt: der Ersatztext bzw. die genannte Station oder
+ * Kenntnisgruppe, sonst der Abschnitt (bei Stationen, Kenntnissen und Sprachen ein neuer Eintrag).
+ * Beim Gesamtbild gibt es kein eindeutiges Ziel.
+ */
+export function suggestionEditTarget(
+  profile: Profile,
+  suggestion: ReviewSuggestion,
+): ProfileEditTarget | undefined {
+  const { rewrite } = suggestion;
+  if (rewrite?.field === 'headline') return { kind: 'personal' };
+  if (rewrite?.field === 'summary') return { kind: 'summary' };
+  const id =
+    rewrite?.field === 'description'
+      ? rewrite.entryId
+      : rewrite?.field === 'items'
+        ? rewrite.skillId
+        : suggestion.targetId;
+  if (id) {
+    const entry = findEntry(profile, id);
+    if (entry) return { kind: 'entry', entryKind: entry.kind, entry };
+    const skill = findSkill(profile, id);
+    if (skill) return { kind: 'skill', skill };
+  }
+  switch (suggestion.area) {
+    case 'personal':
+      return { kind: 'personal' };
+    case 'summary':
+      return { kind: 'summary' };
+    case 'experience':
+    case 'education':
+      return { kind: 'entry', entryKind: suggestion.area };
+    case 'skills':
+      return { kind: 'skill' };
+    case 'languages':
+      return { kind: 'language' };
+    case 'overall':
+      return undefined;
+  }
+}
+
+/** Beschriftung des Knopfs, z. B. „Station bearbeiten“ oder „Sprache hinzufügen“ */
+export function editTargetLabel(target: ProfileEditTarget): string {
+  switch (target.kind) {
+    case 'personal':
+      return 'Persönliche Daten bearbeiten';
+    case 'summary':
+      return 'Kurzprofil bearbeiten';
+    case 'entry': {
+      const noun = target.entryKind === 'experience' ? 'Station' : 'Ausbildung';
+      return target.entry ? `${noun} bearbeiten` : `${noun} hinzufügen`;
+    }
+    case 'skill':
+      return target.skill ? 'Kenntnisse bearbeiten' : 'Kenntnisse hinzufügen';
+    case 'language':
+      return target.language ? 'Sprache bearbeiten' : 'Sprache hinzufügen';
   }
 }
 

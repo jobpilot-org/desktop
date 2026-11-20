@@ -3,10 +3,13 @@ import {
   applyRewrite,
   canReview,
   currentRewriteText,
+  editTargetLabel,
   parseProfileReview,
   reviewRequest,
   rewriteTargetLabel,
   scoreLabel,
+  suggestionEditTarget,
+  type ReviewSuggestion,
 } from '@/domain/profile-review';
 
 const profile: Profile = {
@@ -205,5 +208,60 @@ describe('Anzeige', () => {
     expect(scoreLabel(70)).toBe('Solide');
     expect(scoreLabel(55)).toBe('Ausbaufähig');
     expect(scoreLabel(10)).toBe('Lückenhaft');
+  });
+});
+
+describe('suggestionEditTarget', () => {
+  const base: ReviewSuggestion = {
+    area: 'overall',
+    priority: 'medium',
+    title: 'Titel',
+    detail: 'Detail',
+  };
+
+  it('öffnet die genannte Station bzw. Kenntnisgruppe', () => {
+    expect(suggestionEditTarget(profile, { ...base, area: 'education', targetId: 'b1' })).toEqual({
+      kind: 'entry',
+      entryKind: 'education',
+      entry: profile.education[0],
+    });
+    expect(suggestionEditTarget(profile, { ...base, area: 'skills', targetId: 's1' })).toEqual({
+      kind: 'skill',
+      skill: profile.skills[0],
+    });
+  });
+
+  it('folgt dem Ersatztext', () => {
+    expect(
+      suggestionEditTarget(profile, {
+        ...base,
+        area: 'overall',
+        rewrite: { field: 'description', entryId: 'e1', text: 'x' },
+      }),
+    ).toMatchObject({ kind: 'entry', entry: { id: 'e1' } });
+    expect(
+      suggestionEditTarget(profile, { ...base, rewrite: { field: 'headline', text: 'x' } }),
+    ).toEqual({ kind: 'personal' });
+  });
+
+  it('nimmt sonst den Abschnitt, bei Listen einen neuen Eintrag', () => {
+    expect(suggestionEditTarget(profile, { ...base, area: 'summary' })).toEqual({ kind: 'summary' });
+    expect(suggestionEditTarget(profile, { ...base, area: 'experience' })).toEqual({
+      kind: 'entry',
+      entryKind: 'experience',
+    });
+    expect(suggestionEditTarget(profile, { ...base, area: 'languages' })).toEqual({
+      kind: 'language',
+    });
+    expect(suggestionEditTarget(profile, base)).toBeUndefined();
+  });
+
+  it('beschriftet den Knopf', () => {
+    expect(editTargetLabel({ kind: 'entry', entryKind: 'education', entry: profile.education[0] })).toBe(
+      'Ausbildung bearbeiten',
+    );
+    expect(editTargetLabel({ kind: 'entry', entryKind: 'experience' })).toBe('Station hinzufügen');
+    expect(editTargetLabel({ kind: 'summary' })).toBe('Kurzprofil bearbeiten');
+    expect(editTargetLabel({ kind: 'language' })).toBe('Sprache hinzufügen');
   });
 });

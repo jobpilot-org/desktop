@@ -1,14 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import type {
-  Profile,
-  ProfileEntry,
-  ProfileEntryKind,
-  ProfileLanguage,
-  ProfilePersonal,
-  ProfileSkill,
-} from '@/domain/profile';
+import type { Profile, ProfilePersonal } from '@/domain/profile';
+import type { ProfileEditTarget } from '@/domain/profile-review';
 
 import { useApp, useData } from '../app-context';
 import {
@@ -26,12 +20,7 @@ import {
 } from '../components/profile-sections';
 import { LoadError } from '../ui';
 
-type OpenDialog =
-  | { kind: 'personal' }
-  | { kind: 'summary' }
-  | { kind: 'entry'; entryKind: ProfileEntryKind; entry?: ProfileEntry }
-  | { kind: 'skill'; skill?: ProfileSkill }
-  | { kind: 'language'; language?: ProfileLanguage };
+type OpenDialog = ProfileEditTarget & { onSaved?: () => void };
 
 /** Name aus der Registrierung (user_metadata), solange noch kein Profil gespeichert ist */
 export function useProfileSeed(): ProfilePersonal {
@@ -61,31 +50,47 @@ export function useProfile() {
   return { state, profile };
 }
 
-/** Abschnitte des Profils mit ihren Bearbeiten-Dialogen – Profilseite und Assistent */
+/**
+ * Abschnitte des Profils mit ihren Bearbeiten-Dialogen – Profilseite, Assistent und KI-Check.
+ * `edit` öffnet einen Dialog gezielt; `onSaved` läuft nach Speichern bzw. Löschen.
+ */
 export function useProfileEditor(profile: Profile) {
   const [dialog, setDialog] = useState<OpenDialog>();
   const close = () => setDialog(undefined);
+  const onSaved = dialog?.onSaved;
+  const edit = (target: ProfileEditTarget, saved?: () => void) =>
+    setDialog({ ...target, onSaved: saved });
 
   const dialogs = (
     <>
       {dialog?.kind === 'personal' && (
-        <PersonalDialog personal={profile} onClose={close} />
+        <PersonalDialog personal={profile} onClose={close} onSaved={onSaved} />
       )}
       {dialog?.kind === 'summary' && (
-        <PersonalDialog personal={profile} summaryOnly onClose={close} />
+        <PersonalDialog
+          personal={profile}
+          summaryOnly
+          onClose={close}
+          onSaved={onSaved}
+        />
       )}
       {dialog?.kind === 'entry' && (
         <EntryDialog
           kind={dialog.entryKind}
           entry={dialog.entry}
           onClose={close}
+          onSaved={onSaved}
         />
       )}
       {dialog?.kind === 'skill' && (
-        <SkillDialog skill={dialog.skill} onClose={close} />
+        <SkillDialog skill={dialog.skill} onClose={close} onSaved={onSaved} />
       )}
       {dialog?.kind === 'language' && (
-        <LanguageDialog language={dialog.language} onClose={close} />
+        <LanguageDialog
+          language={dialog.language}
+          onClose={close}
+          onSaved={onSaved}
+        />
       )}
     </>
   );
@@ -135,7 +140,7 @@ export function useProfileEditor(profile: Profile) {
     ),
   };
 
-  return { sections, dialogs };
+  return { sections, dialogs, edit };
 }
 
 export function ProfilePage() {

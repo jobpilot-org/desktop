@@ -118,10 +118,13 @@ export function PersonalDialog({
   personal,
   summaryOnly = false,
   onClose,
+  onSaved,
 }: {
   personal: ProfilePersonal;
   summaryOnly?: boolean;
   onClose: () => void;
+  /** Nach Speichern bzw. Löschen, vor `onClose` */
+  onSaved?: () => void;
 }) {
   const { repos } = useApp();
   const run = useAction();
@@ -140,6 +143,7 @@ export function PersonalDialog({
         'Profil gespeichert',
       )
     ) {
+      onSaved?.();
       onClose();
     }
   }
@@ -198,11 +202,13 @@ export function EntryDialog({
   kind,
   entry,
   onClose,
+  onSaved,
 }: {
   kind: ProfileEntryKind;
   /** Ohne: neue Station */
   entry?: ProfileEntry;
   onClose: () => void;
+  onSaved?: () => void;
 }) {
   const { repos } = useApp();
   const run = useAction();
@@ -229,6 +235,7 @@ export function EntryDialog({
         'Gespeichert',
       )
     ) {
+      onSaved?.();
       onClose();
     }
   }
@@ -236,6 +243,7 @@ export function EntryDialog({
   async function remove() {
     if (!entry || !confirm(`„${entry.title}“ löschen?`)) return;
     if (await run(() => repos.profile.deleteEntry(entry.id), 'Gelöscht')) {
+      onSaved?.();
       onClose();
     }
   }
@@ -291,9 +299,11 @@ export function EntryDialog({
 export function SkillDialog({
   skill,
   onClose,
+  onSaved,
 }: {
   skill?: ProfileSkill;
   onClose: () => void;
+  onSaved?: () => void;
 }) {
   const { repos } = useApp();
   const run = useAction();
@@ -315,6 +325,7 @@ export function SkillDialog({
         'Gespeichert',
       )
     ) {
+      onSaved?.();
       onClose();
     }
   }
@@ -322,6 +333,7 @@ export function SkillDialog({
   async function remove() {
     if (!skill || !confirm('Diese Kenntnisse löschen?')) return;
     if (await run(() => repos.profile.deleteSkill(skill.id), 'Gelöscht')) {
+      onSaved?.();
       onClose();
     }
   }
@@ -361,9 +373,11 @@ export function SkillDialog({
 export function LanguageDialog({
   language,
   onClose,
+  onSaved,
 }: {
   language?: ProfileLanguage;
   onClose: () => void;
+  onSaved?: () => void;
 }) {
   const { repos } = useApp();
   const run = useAction();
@@ -385,6 +399,7 @@ export function LanguageDialog({
         'Gespeichert',
       )
     ) {
+      onSaved?.();
       onClose();
     }
   }
@@ -394,6 +409,7 @@ export function LanguageDialog({
     if (
       await run(() => repos.profile.deleteLanguage(language.id), 'Gelöscht')
     ) {
+      onSaved?.();
       onClose();
     }
   }

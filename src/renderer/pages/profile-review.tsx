@@ -6,10 +6,13 @@ import {
   applyRewrite,
   canReview,
   currentRewriteText,
+  editTargetLabel,
   REVIEW_AREA_LABELS,
   REVIEW_PRIORITY_LABELS,
   rewriteTargetLabel,
   scoreLabel,
+  suggestionEditTarget,
+  type ProfileEditTarget,
   type ProfileReview,
   type ReviewSuggestion,
 } from '@/domain/profile-review';
@@ -18,7 +21,7 @@ import { ProfileReviewError, reviewProfile } from '@/data/profile-review';
 
 import { useApp, useData } from '../app-context';
 import { Empty, LoadError, Section, useAction } from '../ui';
-import { useProfile } from './profile';
+import { useProfile, useProfileEditor } from './profile';
 
 const CONSENT_TEXT =
   'Für den Check wird dein Profil – ohne Name, Anschrift, Telefon, E-Mail und Geburtsdaten – an den jobpilot-Server gesendet und von dort mit deinem eigenen KI-Key an den KI-Anbieter (Anthropic) weitergeleitet. Gespeichert wird nichts; Vorschläge übernimmst du einzeln.';
@@ -144,6 +147,9 @@ function ReviewResult({
   onRestart: () => void;
 }) {
   const navigate = useNavigate();
+  const { dialogs, edit } = useProfileEditor(profile);
+  // Vorschläge, die der Nutzer selbst bearbeitet hat (Dialog gespeichert)
+  const [edited, setEdited] = useState<ReadonlySet<number>>(new Set());
   return (
     <>
       <div className="card review-score">
@@ -174,7 +180,16 @@ function ReviewResult({
           <ul className="rows">
             {review.suggestions.map((suggestion, i) => (
               <li key={i} className="row review-suggestion">
-                <SuggestionItem profile={profile} suggestion={suggestion} />
+                <SuggestionItem
+                  profile={profile}
+                  suggestion={suggestion}
+                  edited={edited.has(i)}
+                  onEdit={(target) =>
+                    edit(target, () =>
+                      setEdited((current) => new Set(current).add(i)),
+                    )
+                  }
+                />
               </li>
             ))}
           </ul>
@@ -196,6 +211,7 @@ function ReviewResult({
           Zum Profil
         </button>
       </div>
+      {dialogs}
     </>
   );
 }
@@ -203,9 +219,13 @@ function ReviewResult({
 function SuggestionItem({
   profile,
   suggestion,
+  edited,
+  onEdit,
 }: {
   profile: Profile;
   suggestion: ReviewSuggestion;
+  edited: boolean;
+  onEdit: (target: ProfileEditTarget) => void;
 }) {
   const { repos } = useApp();
   const run = useAction();
@@ -215,6 +235,15 @@ function SuggestionItem({
   const current = rewrite && currentRewriteText(profile, rewrite);
   // Übernommen, sobald das Profil den vorgeschlagenen Text enthält
   const applied = !!rewrite && (current ?? '').trim() === rewrite.text.trim();
+  // Ziel aus dem aktuellen Profil, damit der Dialog den neuesten Stand zeigt
+  const target = suggestionEditTarget(profile, suggestion);
+  const editButton = target ? (
+    <button type="button" onClick={() => onEdit(target)}>
+      {rewrite ? 'Selbst bearbeiten' : editTargetLabel(target)}
+    </button>
+  ) : (
+    <Link to="/profil">Im Profil bearbeiten</Link>
+  );
 
   async function accept() {
     if (!rewrite) return;
@@ -263,7 +292,7 @@ function SuggestionItem({
             <span className="muted small">Vorschlag</span>
             <p className="prewrap">{rewrite.text}</p>
           </div>
-          <div>
+          <div className="review-actions">
             {applied ? (
               <span className="review-applied">✓ Übernommen</span>
             ) : (
@@ -276,7 +305,17 @@ function SuggestionItem({
                 Übernehmen
               </button>
             )}
+            {!applied && editButton}
+            {edited && !applied && (
+              <span className="review-applied">✓ Bearbeitet</span>
+            )}
           </div>
+        </div>
+      )}
+      {!rewrite && (
+        <div className="review-actions">
+          {editButton}
+          {edited && <span className="review-applied">✓ Bearbeitet</span>}
         </div>
       )}
     </div>
