@@ -15,8 +15,11 @@ nichts außer der Login-Session und der Benachrichtigungs-Einstellung gespeicher
 - Auswertung: Funnel, Rückmeldequote, Bewerbungen pro Woche, Erfolg nach Quelle
 - Erinnerungen: Abgleich mit den Regeln nach jeder Änderung und stündlich; fällige Erinnerungen
   optional als Systembenachrichtigung (Einstellung je Rechner)
+- Profil (Lebenslauf): Willkommensseite nach dem ersten Login, Assistent Schritt für Schritt,
+  Profilseite zum Pflegen, Import eines PDF-Lebenslaufs per KI (Edge Function `cv-import`, eigener
+  KI-Key in den Einstellungen)
 
-Noch nicht enthalten: KI-Assistent, Import/Export (Backup, CSV), Demo-Modus.
+Noch nicht enthalten: KI-Assistent für Bewerbungen, Import/Export (Backup, CSV), Demo-Modus.
 
 ## Entwicklung
 

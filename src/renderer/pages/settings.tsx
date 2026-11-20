@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FOLLOW_UP_OPTIONS, type ReminderSettings } from '@/domain/reminders';
 
 import { errorMessage, useApp, useData } from '../app-context';
+import { AiKeySettings } from '../components/ai-key-settings';
 import {
   notificationsEnabled,
   setNotificationsEnabled,
@@ -106,6 +107,10 @@ export function SettingsPage() {
         <p className="muted">
           Gilt nur für diesen Rechner und nur, solange jobpilot geöffnet ist.
         </p>
+      </Section>
+
+      <Section title="KI">
+        <AiKeySettings />
       </Section>
 
       <Section title="Konto">

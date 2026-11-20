@@ -874,6 +874,113 @@ a.stat:hover {
   font-size: 11px;
 }
 
+/* --- Profil (Lebenslauf): Zeitraum links, Station rechts – wie im PDF-Lebenslauf --- */
+
+.profile-row {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+}
+
+.profile-period {
+  flex: 0 0 132px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.profile-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-bullets {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.profile-label {
+  flex: 0 0 160px;
+}
+
+.profile-summary {
+  margin: 0;
+  padding: 11px 0;
+  line-height: 22px;
+}
+
+/* Willkommensseite und Assistent: Auswahlkarten bzw. Schrittanzeige */
+.choice-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 0;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  text-align: left;
+}
+
+.choice strong {
+  font-size: 15px;
+}
+
+.choice:hover:not(:disabled) {
+  border-color: var(--accent-link);
+}
+
+.steps {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.steps li.is-done {
+  background: var(--accent);
+}
+
+.wizard-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.dropzone {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.dropzone.is-over {
+  border-color: var(--accent-link);
+  background: var(--jp-accent-soft);
+}
+
 /* --- Anmeldung (login-screen.tsx) & Hinweise (toast.tsx) --- */
 
 .login {

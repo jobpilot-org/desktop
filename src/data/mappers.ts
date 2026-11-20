@@ -13,6 +13,15 @@ import type {
   ContactInput,
   Note,
 } from '@/domain/details';
+import type {
+  Profile,
+  ProfileEntry,
+  ProfileEntryInput,
+  ProfileEntryKind,
+  ProfileLanguage,
+  ProfilePersonal,
+  ProfileSkill,
+} from '@/domain/profile';
 import type { Reminder, ReminderKind } from '@/domain/reminders';
 
 import type { Database } from './database.types';
@@ -28,6 +37,10 @@ export type ContactRow = Tables['contacts']['Row'];
 export type NoteRow = Tables['notes']['Row'];
 export type AppointmentRow = Tables['appointments']['Row'];
 export type ReminderRow = Tables['reminders']['Row'];
+export type ProfileRow = Tables['profiles']['Row'];
+export type ProfileEntryRow = Tables['profile_entries']['Row'];
+export type ProfileSkillRow = Tables['profile_skills']['Row'];
+export type ProfileLanguageRow = Tables['profile_languages']['Row'];
 
 /**
  * Postgres liefert `timestamptz` als `…+00:00`; die Domain vergleicht ISO-Strings mit `Z`, wie sie
@@ -138,6 +151,93 @@ export function toReminder(row: ReminderRow): Reminder {
     body: row.body,
     doneAt: optionalTimestamp(row.done_at),
     snoozedUntil: optionalTimestamp(row.snoozed_until),
+  };
+}
+
+/** null → Feld fehlt; leere Strings ebenso, damit die Domain nur echte Werte sieht */
+const optional = (value: string | null) => value || undefined;
+
+export function toProfileEntry(row: ProfileEntryRow): ProfileEntry {
+  return {
+    id: row.id,
+    kind: row.kind as ProfileEntryKind,
+    title: row.title,
+    organization: optional(row.organization),
+    location: optional(row.location),
+    description: optional(row.description),
+    startDate: optional(row.start_date),
+    endDate: optional(row.end_date),
+    isCurrent: row.is_current,
+  };
+}
+
+export function toProfileEntryColumns(input: ProfileEntryInput) {
+  return {
+    title: input.title,
+    organization: input.organization ?? null,
+    location: input.location ?? null,
+    description: input.description ?? null,
+    start_date: input.startDate ?? null,
+    end_date: input.isCurrent ? null : (input.endDate ?? null),
+    is_current: input.isCurrent,
+  };
+}
+
+export function toProfilePersonalColumns(personal: ProfilePersonal) {
+  return {
+    first_name: personal.firstName,
+    last_name: personal.lastName,
+    headline: personal.headline ?? null,
+    street: personal.street ?? null,
+    postal_code: personal.postalCode ?? null,
+    city: personal.city ?? null,
+    phone: personal.phone ?? null,
+    email: personal.email ?? null,
+    birth_date: personal.birthDate ?? null,
+    birth_place: personal.birthPlace ?? null,
+    summary: personal.summary ?? null,
+  };
+}
+
+/** Setzt das Profil aus der Kopfzeile und den drei Listen zusammen (Listen nach `position`) */
+export function toProfile(
+  row: ProfileRow,
+  entries: ProfileEntryRow[],
+  skills: ProfileSkillRow[],
+  languages: ProfileLanguageRow[],
+): Profile {
+  const byPosition = <T extends { position: number }>(a: T, b: T) =>
+    a.position - b.position;
+  const sortedEntries = [...entries].sort(byPosition).map(toProfileEntry);
+  return {
+    firstName: row.first_name,
+    lastName: row.last_name,
+    headline: optional(row.headline),
+    street: optional(row.street),
+    postalCode: optional(row.postal_code),
+    city: optional(row.city),
+    phone: optional(row.phone),
+    email: optional(row.email),
+    birthDate: optional(row.birth_date),
+    birthPlace: optional(row.birth_place),
+    summary: optional(row.summary),
+    onboardedAt: optionalTimestamp(row.onboarded_at),
+    experience: sortedEntries.filter((entry) => entry.kind === 'experience'),
+    education: sortedEntries.filter((entry) => entry.kind === 'education'),
+    skills: [...skills].sort(byPosition).map(
+      (skill): ProfileSkill => ({
+        id: skill.id,
+        category: optional(skill.category),
+        items: skill.items,
+      }),
+    ),
+    languages: [...languages].sort(byPosition).map(
+      (language): ProfileLanguage => ({
+        id: language.id,
+        language: language.language,
+        level: optional(language.level),
+      }),
+    ),
   };
 }
 

@@ -10,8 +10,12 @@ import { ApplicationsPage } from './pages/applications';
 import { InsightsPage } from './pages/insights';
 import { LoginPage } from './pages/login';
 import { OverviewPage } from './pages/overview';
+import { ProfilePage } from './pages/profile';
+import { ProfileAssistantPage } from './pages/profile-assistant';
+import { ProfileImportPage } from './pages/profile-import';
 import { RegisterPage } from './pages/register';
 import { SettingsPage } from './pages/settings';
+import { WelcomePage } from './pages/welcome';
 import '../theme/jobpilot.css';
 import './styles.css';
 import { ToastProvider } from './ui';
@@ -42,6 +46,10 @@ function App() {
           element={<ApplicationFormPage />}
         />
         <Route path="auswertung" element={<InsightsPage />} />
+        <Route path="profil" element={<ProfilePage />} />
+        <Route path="profil/assistent" element={<ProfileAssistantPage />} />
+        <Route path="profil/import" element={<ProfileImportPage />} />
+        <Route path="willkommen" element={<WelcomePage />} />
         <Route path="einstellungen" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

@@ -1,3 +1,5 @@
+import { profileToInput } from '@/domain/profile';
+
 import { createRepositories } from '../index';
 import { createSupabase } from '../supabase';
 
@@ -114,5 +116,69 @@ describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
     await repos.settings.set('applications.view', 'list');
     expect(await repos.settings.get('applications.view')).toBe('list');
     if (previous) await repos.settings.set('applications.view', previous);
+  });
+
+  it('ersetzt, ergänzt und liest das Profil', async () => {
+    // Das Testkonto soll danach so dastehen wie vorher
+    const before = await repos.profile.get();
+    try {
+      await repos.profile.replace({
+        firstName: 'Test',
+        lastName: 'Konto',
+        headline: 'Integrationstest',
+        experience: [
+          {
+            title: 'Alt',
+            startDate: '2019',
+            endDate: '2022-02',
+            isCurrent: false,
+          },
+        ],
+        education: [
+          {
+            title: 'Bachelor',
+            startDate: '2014',
+            endDate: '2018',
+            isCurrent: false,
+          },
+        ],
+        skills: [{ category: 'Frontend', items: 'React' }],
+        languages: [{ language: 'Deutsch', level: 'Muttersprache' }],
+      });
+      const id = await repos.profile.saveEntry('experience', {
+        title: 'Neu',
+        startDate: '2023-05',
+        isCurrent: true,
+      });
+
+      const profile = await repos.profile.get();
+      expect(profile).toMatchObject({
+        firstName: 'Test',
+        headline: 'Integrationstest',
+        experience: [
+          { title: 'Alt', endDate: '2022-02' },
+          { id, title: 'Neu', startDate: '2023-05', isCurrent: true },
+        ],
+        education: [{ title: 'Bachelor' }],
+        skills: [{ category: 'Frontend', items: 'React' }],
+        languages: [{ language: 'Deutsch', level: 'Muttersprache' }],
+      });
+      expect(profile?.onboardedAt).toMatch(/Z$/);
+
+      await repos.profile.savePersonal({
+        firstName: 'Test',
+        lastName: 'Konto',
+      });
+      expect((await repos.profile.get())?.headline).toBeUndefined();
+    } finally {
+      if (before) {
+        await repos.profile.replace(profileToInput(before));
+      } else {
+        await supabase.from('profile_entries').delete().not('id', 'is', null);
+        await supabase.from('profile_skills').delete().not('id', 'is', null);
+        await supabase.from('profile_languages').delete().not('id', 'is', null);
+        await supabase.from('profiles').delete().not('user_id', 'is', null);
+      }
+    }
   });
 });

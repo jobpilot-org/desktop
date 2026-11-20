@@ -2,6 +2,7 @@ import { unwrap, unwrapList } from './mappers';
 import type { Supabase } from './supabase';
 
 export type SettingKey =
+  | 'ai.consent'
   | 'applications.filter'
   | 'applications.sort'
   | 'applications.view'
