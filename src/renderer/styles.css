@@ -1349,3 +1349,34 @@ a.stat:hover {
   white-space: nowrap;
   cursor: pointer;
 }
+
+/* --- Dublettenprüfung (application-form.tsx) --- */
+
+.duplicate-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--jp-accent-soft);
+  color: var(--jp-accent-soft-text);
+}
+
+.duplicate-notice p {
+  margin: 0;
+}
+
+.duplicate-notice .jp-eyebrow {
+  color: var(--jp-accent-soft-eyebrow);
+}
+
+.duplicate-notice .row {
+  border-color: var(--border);
+}
+
+.duplicate-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -119,6 +119,10 @@ export function SettingsPage() {
         </p>
         <button onClick={signOut}>Abmelden</button>
       </Section>
+
+      <Section title="Über jobpilot">
+        <p className="muted">Version {__APP_VERSION__}</p>
+      </Section>
     </div>
   );
 }
