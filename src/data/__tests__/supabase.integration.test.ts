@@ -189,4 +189,79 @@ describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
       }
     }
   });
+
+  it('lädt Dokumente hoch, ordnet zu, ersetzt das Foto und löscht', async () => {
+    const entryId = await repos.profile.saveEntry('experience', {
+      title: 'Dokumenten-Test',
+      organization: 'Increon',
+      isCurrent: false,
+    });
+    const created: string[] = [];
+    try {
+      const pdf = new File(['%PDF-1.4 test'], 'Arbeitszeugnis Increon.pdf', {
+        type: 'application/pdf',
+      });
+      const reference = await repos.documents.upload(pdf, {
+        kind: 'reference',
+        title: 'Arbeitszeugnis Increon',
+        profileEntryId: entryId,
+      });
+      created.push(reference.id);
+      expect(reference).toMatchObject({
+        kind: 'reference',
+        fileName: 'Arbeitszeugnis Increon.pdf',
+        mimeType: 'application/pdf',
+        profileEntryId: entryId,
+      });
+      expect(reference.storagePath).toMatch(/\/arbeitszeugnis_increon\.pdf$/);
+      expect(await (await repos.documents.download(reference)).text()).toBe(
+        '%PDF-1.4 test',
+      );
+      expect(await repos.documents.signedUrl(reference)).toMatch(/token=/);
+
+      const photo = (name: string) =>
+        new File(['bild'], name, { type: 'image/jpeg' });
+      const first = await repos.documents.upload(photo('a.jpg'), {
+        kind: 'photo',
+        title: 'Foto',
+      });
+      const second = await repos.documents.upload(photo('b.jpg'), {
+        kind: 'photo',
+        title: 'Foto',
+      });
+      created.push(second.id);
+      const photos = (await repos.documents.list()).filter(
+        (d) => d.kind === 'photo',
+      );
+      expect(photos.map((d) => d.id)).toEqual([second.id]);
+      const { data: oldFile } = await supabase.storage
+        .from('documents')
+        .download(first.storagePath);
+      expect(oldFile).toBeNull();
+
+      // Station löschen hebt nur die Zuordnung auf
+      await repos.profile.deleteEntry(entryId);
+      const kept = (await repos.documents.list()).find(
+        (d) => d.id === reference.id,
+      );
+      expect(kept?.profileEntryId).toBeUndefined();
+
+      await repos.documents.update(reference.id, {
+        kind: 'certificate',
+        title: 'Umbenannt',
+      });
+      expect(
+        (await repos.documents.list()).find((d) => d.id === reference.id),
+      ).toMatchObject({ kind: 'certificate', title: 'Umbenannt' });
+    } finally {
+      for (const document of await repos.documents.list()) {
+        if (created.includes(document.id))
+          await repos.documents.remove(document);
+      }
+      await repos.profile.deleteEntry(entryId);
+    }
+    expect(
+      (await repos.documents.list()).filter((d) => created.includes(d.id)),
+    ).toEqual([]);
+  });
 });

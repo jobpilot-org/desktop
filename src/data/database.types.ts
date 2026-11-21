@@ -182,6 +182,57 @@ export type Database = {
           },
         ];
       };
+      documents: {
+        Row: {
+          created_at: string;
+          file_name: string;
+          id: string;
+          kind: string;
+          mime_type: string;
+          profile_entry_id: string | null;
+          size_bytes: number;
+          storage_path: string;
+          title: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          file_name: string;
+          id?: string;
+          kind: string;
+          mime_type: string;
+          profile_entry_id?: string | null;
+          size_bytes: number;
+          storage_path: string;
+          title: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          file_name?: string;
+          id?: string;
+          kind?: string;
+          mime_type?: string;
+          profile_entry_id?: string | null;
+          size_bytes?: number;
+          storage_path?: string;
+          title?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'documents_user_id_profile_entry_id_fkey';
+            columns: ['user_id', 'profile_entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile_entries';
+            referencedColumns: ['user_id', 'id'];
+          },
+        ];
+      };
       notes: {
         Row: {
           application_id: string;

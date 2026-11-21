@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 
 import {
   compareEntriesNewestFirst,
@@ -11,7 +11,10 @@ import {
   type ProfileSkillInput,
 } from '@/domain/profile';
 
+import type { ProfileDocument } from '@/domain/documents';
+
 import { Empty, formatDate, Section } from '../ui';
+import { DocumentChips } from './documents';
 
 // Anzeige des Profils in Abschnitten. Mit `onEdit` bearbeitbar (Profilseite, Assistent), ohne nur
 // lesbar (Vorschau des PDF-Imports). Die Listen tragen dort noch keine ids.
@@ -36,9 +39,12 @@ function EditButton({ onClick }: { onClick: () => void }) {
 
 export function PersonalSection({
   personal,
+  photo,
   onEdit,
 }: {
   personal: ProfilePersonal;
+  /** Bewerbungsfoto neben den Angaben (Profilseite) */
+  photo?: ReactNode;
   onEdit?: () => void;
 }) {
   const name = `${personal.firstName} ${personal.lastName}`.trim();
@@ -69,18 +75,21 @@ export function PersonalSection({
       title="Persönliche Daten"
       action={onEdit && <EditButton onClick={onEdit} />}
     >
-      {filled.length ? (
-        <dl className="facts">
-          {filled.map(([label, value]) => (
-            <Fragment key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </Fragment>
-          ))}
-        </dl>
-      ) : (
-        <Empty>Noch keine persönlichen Daten.</Empty>
-      )}
+      <div className={photo ? 'personal-with-photo' : undefined}>
+        {filled.length ? (
+          <dl className="facts">
+            {filled.map(([label, value]) => (
+              <Fragment key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </Fragment>
+            ))}
+          </dl>
+        ) : (
+          <Empty>Noch keine persönlichen Daten.</Empty>
+        )}
+        {photo}
+      </div>
     </Section>
   );
 }
@@ -112,10 +121,13 @@ export function SummarySection({
 export function EntriesSection<E extends WithId<ProfileEntryInput>>({
   kind,
   entries,
+  documents,
   onEdit,
 }: {
   kind: ProfileEntryKind;
   entries: E[];
+  /** Zugeordnete Dokumente je Station (id), z. B. das Arbeitszeugnis */
+  documents?: ReadonlyMap<string, ProfileDocument[]>;
   /** Ohne Station: neue anlegen */
   onEdit?: (entry?: E) => void;
 }) {
@@ -169,6 +181,9 @@ export function EntriesSection<E extends WithId<ProfileEntryInput>>({
                   </button>
                 ) : (
                   <div className="row-main profile-row">{body}</div>
+                )}
+                {entry.id && documents?.get(entry.id) && (
+                  <DocumentChips documents={documents.get(entry.id)!} />
                 )}
               </li>
             );

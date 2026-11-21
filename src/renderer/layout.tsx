@@ -11,6 +11,7 @@ const NAV: { to: string; label: string; end: boolean; also?: string }[] = [
   { to: '/bewerbungen', label: 'Bewerbungen', end: false, also: '/bewerbung/' },
   { to: '/auswertung', label: 'Auswertung', end: false },
   { to: '/profil', label: 'Profil', end: false },
+  { to: '/dokumente', label: 'Dokumente', end: false },
   { to: '/einstellungen', label: 'Einstellungen', end: false },
 ];
 

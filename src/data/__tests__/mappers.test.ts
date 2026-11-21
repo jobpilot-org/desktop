@@ -2,6 +2,7 @@ import type { ApplicationInput } from '@/domain/application';
 
 import {
   toApplicationColumns,
+  toDocument,
   toIsoTimestamp,
   toJobApplication,
   toReminder,
@@ -101,6 +102,36 @@ describe('toReminder', () => {
       dueAt: '2026-11-11T08:00:00.000Z',
       doneAt: undefined,
       snoozedUntil: '2026-11-14T08:00:00.000Z',
+    });
+  });
+});
+
+describe('toDocument', () => {
+  it('wandelt Spalten und Zeitstempel um, ohne Station undefined', () => {
+    expect(
+      toDocument({
+        id: 'd1',
+        user_id: '11111111-1111-1111-1111-111111111111',
+        kind: 'reference',
+        title: 'Arbeitszeugnis Increon',
+        file_name: 'Zeugnis.pdf',
+        mime_type: 'application/pdf',
+        size_bytes: 1200,
+        storage_path: '11111111-1111-1111-1111-111111111111/d1/zeugnis.pdf',
+        profile_entry_id: null,
+        created_at: '2026-11-21T08:00:00+00:00',
+        updated_at: '2026-11-21T08:00:00+00:00',
+      }),
+    ).toEqual({
+      id: 'd1',
+      kind: 'reference',
+      title: 'Arbeitszeugnis Increon',
+      fileName: 'Zeugnis.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 1200,
+      storagePath: '11111111-1111-1111-1111-111111111111/d1/zeugnis.pdf',
+      profileEntryId: undefined,
+      createdAt: '2026-11-21T08:00:00.000Z',
     });
   });
 });

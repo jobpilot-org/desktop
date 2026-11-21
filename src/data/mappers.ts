@@ -22,6 +22,11 @@ import type {
   ProfilePersonal,
   ProfileSkill,
 } from '@/domain/profile';
+import type {
+  DocumentKind,
+  DocumentMimeType,
+  ProfileDocument,
+} from '@/domain/documents';
 import type { Reminder, ReminderKind } from '@/domain/reminders';
 
 import type { Database } from './database.types';
@@ -41,6 +46,7 @@ export type ProfileRow = Tables['profiles']['Row'];
 export type ProfileEntryRow = Tables['profile_entries']['Row'];
 export type ProfileSkillRow = Tables['profile_skills']['Row'];
 export type ProfileLanguageRow = Tables['profile_languages']['Row'];
+export type DocumentRow = Tables['documents']['Row'];
 
 /**
  * Postgres liefert `timestamptz` als `…+00:00`; die Domain vergleicht ISO-Strings mit `Z`, wie sie
@@ -238,6 +244,20 @@ export function toProfile(
         level: optional(language.level),
       }),
     ),
+  };
+}
+
+export function toDocument(row: DocumentRow): ProfileDocument {
+  return {
+    id: row.id,
+    kind: row.kind as DocumentKind,
+    title: row.title,
+    fileName: row.file_name,
+    mimeType: row.mime_type as DocumentMimeType,
+    sizeBytes: row.size_bytes,
+    storagePath: row.storage_path,
+    profileEntryId: row.profile_entry_id ?? undefined,
+    createdAt: toIsoTimestamp(row.created_at),
   };
 }
 

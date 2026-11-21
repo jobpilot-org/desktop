@@ -1,6 +1,7 @@
 import { useRef, useState, type DragEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 
+import { reassignDocuments } from '@/domain/documents';
 import { summarizeProfileInput, type ProfileInput } from '@/domain/profile';
 
 import { CvImportError, importCv } from '@/data/cv-import';
@@ -74,9 +75,29 @@ export function ProfileImportPage() {
       firstName: draft.firstName || profile?.firstName || '',
       lastName: draft.lastName || profile?.lastName || '',
     };
-    if (await run(() => repos.profile.replace(input), 'Profil übernommen')) {
-      navigate('/profil');
-    }
+    const saved = await run(async () => {
+      // Die Stationen bekommen neue ids; Dokumente danach wieder passend zuordnen
+      const documents = await repos.documents.list();
+      const oldEntries = [
+        ...(profile?.experience ?? []),
+        ...(profile?.education ?? []),
+      ];
+      await repos.profile.replace(input);
+      const fresh = await repos.profile.get();
+      const moves = reassignDocuments(documents, oldEntries, [
+        ...(fresh?.experience ?? []),
+        ...(fresh?.education ?? []),
+      ]);
+      for (const move of moves) {
+        const document = documents.find((d) => d.id === move.id)!;
+        await repos.documents.update(document.id, {
+          kind: document.kind,
+          title: document.title,
+          profileEntryId: move.profileEntryId,
+        });
+      }
+    }, 'Profil übernommen');
+    if (saved) navigate('/profil');
   }
 
   function drop(event: DragEvent) {
@@ -162,7 +183,9 @@ export function ProfileImportPage() {
           </p>
           {hasProfile && (
             <p className="error-box">
-              Übernehmen ersetzt dein bisheriges Profil vollständig.
+              Übernehmen ersetzt dein bisheriges Profil vollständig. Dokumente
+              bleiben erhalten und werden, wo möglich, wieder der passenden
+              Station zugeordnet.
             </p>
           )}
           <PersonalSection personal={step.draft} />

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
+import { documentsByEntry } from '@/domain/documents';
 import type { Profile, ProfilePersonal } from '@/domain/profile';
 import type { ProfileEditTarget } from '@/domain/profile-review';
 
@@ -11,6 +12,7 @@ import {
   PersonalDialog,
   SkillDialog,
 } from '../components/profile-dialogs';
+import { PhotoThumb } from '../components/documents';
 import {
   EntriesSection,
   LanguagesSection,
@@ -56,6 +58,9 @@ export function useProfile() {
  */
 export function useProfileEditor(profile: Profile) {
   const [dialog, setDialog] = useState<OpenDialog>();
+  const documents = useData((r) => r.documents.list()).data ?? [];
+  const byEntry = documentsByEntry(documents);
+  const photo = documents.find((d) => d.kind === 'photo');
   const close = () => setDialog(undefined);
   const onSaved = dialog?.onSaved;
   const edit = (target: ProfileEditTarget, saved?: () => void) =>
@@ -99,6 +104,11 @@ export function useProfileEditor(profile: Profile) {
     personal: (
       <PersonalSection
         personal={profile}
+        photo={
+          <Link to="/dokumente" className="photo-link" title="Bewerbungsfoto">
+            <PhotoThumb photo={photo} size={72} />
+          </Link>
+        }
         onEdit={() => setDialog({ kind: 'personal' })}
       />
     ),
@@ -112,6 +122,7 @@ export function useProfileEditor(profile: Profile) {
       <EntriesSection
         kind="experience"
         entries={profile.experience}
+        documents={byEntry}
         onEdit={(entry) =>
           setDialog({ kind: 'entry', entryKind: 'experience', entry })
         }
@@ -121,6 +132,7 @@ export function useProfileEditor(profile: Profile) {
       <EntriesSection
         kind="education"
         entries={profile.education}
+        documents={byEntry}
         onEdit={(entry) =>
           setDialog({ kind: 'entry', entryKind: 'education', entry })
         }
@@ -182,6 +194,9 @@ function ProfileContent({
           </button>
           <button type="button" onClick={() => navigate('/profil/check')}>
             KI-Check
+          </button>
+          <button type="button" onClick={() => navigate('/dokumente')}>
+            Dokumente
           </button>
         </div>
       </div>

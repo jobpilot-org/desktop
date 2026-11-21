@@ -1,6 +1,7 @@
 import { createAiKeyRepository } from './ai-key';
 import { createApplicationsRepository } from './applications';
 import { createDetailsRepository } from './details';
+import { createDocumentsRepository } from './documents';
 import { createProfileRepository } from './profile';
 import { createRemindersRepository } from './reminders';
 import { createSettingsRepository } from './settings';
@@ -11,6 +12,7 @@ export function createRepositories(supabase: Supabase) {
     aiKey: createAiKeyRepository(supabase),
     applications: createApplicationsRepository(supabase),
     details: createDetailsRepository(supabase),
+    documents: createDocumentsRepository(supabase),
     profile: createProfileRepository(supabase),
     reminders: createRemindersRepository(supabase),
     settings: createSettingsRepository(supabase),
