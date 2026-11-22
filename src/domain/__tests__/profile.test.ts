@@ -12,6 +12,10 @@ import {
   profileToInput,
   summarizeProfileInput,
   type Profile,
+  guessLinkKind,
+  linkText,
+  normalizeLinkUrl,
+  parseLinkForm,
 } from '@/domain/profile';
 
 describe('formatPeriod', () => {
@@ -248,6 +252,7 @@ describe('parseProfileDraft', () => {
         },
         { title: 'Fachhochschulreife', endDate: '1996', isCurrent: false },
       ],
+      volunteering: [],
       skills: [{ category: 'Frontend', items: 'React, TypeScript' }],
       languages: [{ language: 'Englisch', level: 'verhandlungssicher' }],
     });
@@ -264,10 +269,23 @@ describe('parseProfileDraft', () => {
         lastName: '',
         experience: [{ title: 'A', isCurrent: false }],
         education: [],
+        volunteering: [],
         skills: [],
         languages: [{ language: 'Deutsch' }, { language: 'Englisch' }],
       }),
     ).toBe('1 berufliche Station, 0 Aus-/Weiterbildungen, 0 Kenntnisgruppen, 2 Sprachen');
+    expect(
+      summarizeProfileInput({
+        firstName: '',
+        lastName: '',
+        experience: [],
+        education: [],
+        volunteering: [{ title: 'Trainerin', isCurrent: true }],
+        skills: [],
+        languages: [],
+        links: [{ kind: 'github', url: 'https://github.com/erika' }],
+      }),
+    ).toBe('0 berufliche Stationen, 0 Aus-/Weiterbildungen, 1 Ehrenamt, 0 Kenntnisgruppen, 0 Sprachen, 1 Link');
   });
 });
 
@@ -279,16 +297,72 @@ describe('profileToInput', () => {
       onboardedAt: '2026-11-20T08:00:00.000Z',
       experience: [{ id: 'e1', kind: 'experience', title: 'A', isCurrent: false }],
       education: [],
+      volunteering: [{ id: 'v1', kind: 'volunteer', title: 'Trainerin', isCurrent: true }],
       skills: [{ id: 's1', items: 'React' }],
       languages: [{ id: 'l1', language: 'Deutsch' }],
+      links: [{ id: 'k1', kind: 'github', url: 'https://github.com/erika' }],
     };
     expect(profileToInput(profile)).toEqual({
       firstName: 'Erika',
       lastName: 'Muster',
       experience: [{ title: 'A', isCurrent: false }],
       education: [],
+      volunteering: [{ title: 'Trainerin', isCurrent: true }],
       skills: [{ items: 'React' }],
       languages: [{ language: 'Deutsch' }],
+      links: [{ kind: 'github', url: 'https://github.com/erika' }],
     });
+  });
+});
+
+describe('Links', () => {
+  it('ergänzt https und lehnt Unbrauchbares ab', () => {
+    expect(normalizeLinkUrl('github.com/erika')).toBe('https://github.com/erika');
+    expect(normalizeLinkUrl(' https://www.linkedin.com/in/erika/ ')).toBe(
+      'https://www.linkedin.com/in/erika/',
+    );
+    expect(normalizeLinkUrl('javascript:alert(1)')).toBeUndefined();
+    expect(normalizeLinkUrl('mailto:erika@example.org')).toBeUndefined();
+    expect(normalizeLinkUrl('kein link')).toBeUndefined();
+    expect(normalizeLinkUrl('localhost')).toBeUndefined();
+  });
+
+  it('erkennt die Art an der Adresse', () => {
+    expect(guessLinkKind('https://de.linkedin.com/in/erika')).toBe('linkedin');
+    expect(guessLinkKind('https://www.xing.com/profile/Erika')).toBe('xing');
+    expect(guessLinkKind('https://github.com/erika')).toBe('github');
+    expect(guessLinkKind('https://gitlab.com/erika')).toBe('gitlab');
+    expect(guessLinkKind('https://gitlab.firma.de/erika')).toBe('gitlab');
+    expect(guessLinkKind('https://erika.dev')).toBe('website');
+  });
+
+  it('prüft das Formular und zeigt Links kurz an', () => {
+    expect(parseLinkForm({ kind: '', url: 'github.com/erika', label: '' })).toEqual({
+      ok: true,
+      value: { kind: 'github', url: 'https://github.com/erika' },
+    });
+    expect(parseLinkForm({ kind: 'other', url: 'https://a.de', label: ' Blog ' })).toEqual({
+      ok: true,
+      value: { kind: 'other', url: 'https://a.de/', label: 'Blog' },
+    });
+    expect(parseLinkForm({ kind: '', url: 'x', label: '' }).ok).toBe(false);
+    expect(linkText({ url: 'https://www.github.com/erika/' })).toBe('github.com/erika');
+    expect(linkText({ url: 'https://a.de', label: 'Blog' })).toBe('Blog');
+  });
+
+  it('übernimmt Ehrenamt und Links aus dem Import', () => {
+    const draft = parseProfileDraft({
+      volunteering: [{ title: 'Jugendtrainerin', organization: 'TSV', isCurrent: true }],
+      links: [
+        { kind: 'github', url: 'github.com/erika' },
+        { kind: 'other', url: 'https://www.linkedin.com/in/erika' },
+        { kind: 'website', url: 'mailto:x@y.de' },
+      ],
+    });
+    expect(draft.volunteering).toEqual([{ title: 'Jugendtrainerin', organization: 'TSV', isCurrent: true }]);
+    expect(draft.links).toEqual([
+      { kind: 'github', url: 'https://github.com/erika' },
+      { kind: 'linkedin', url: 'https://www.linkedin.com/in/erika' },
+    ]);
   });
 });

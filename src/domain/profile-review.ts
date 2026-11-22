@@ -8,9 +8,11 @@ import {
   type ProfileEntryInput,
   type ProfileEntryKind,
   type ProfileLanguage,
+  type ProfileLink,
   type ProfilePersonal,
   type ProfileSkill,
   type ProfileSkillInput,
+  allEntries,
 } from '@/domain/profile';
 
 // Profil-Check per KI auf grobe inhaltliche Fehler: Bewertung, Stärken und Korrekturvorschläge,
@@ -29,6 +31,8 @@ export type ReviewProfile = {
   contact: { address: boolean; phone: boolean; email: boolean; birthDate: boolean };
   experience: ReviewEntry[];
   education: ReviewEntry[];
+  /** Nur gesetzt, wenn es Ehrenämter gibt – ältere Server kennen das Feld nicht verpflichtend */
+  volunteering?: ReviewEntry[];
   skills: { id: string; category?: string; items: string }[];
   languages: { language: string; level?: string }[];
 };
@@ -66,6 +70,7 @@ export function reviewRequest(profile: Profile): ReviewRequest {
       },
       experience: profile.experience.map(entry),
       education: profile.education.map(entry),
+      ...(profile.volunteering.length ? { volunteering: profile.volunteering.map(entry) } : {}),
       skills: profile.skills.map(({ id, category, items }) => ({ id, category, items })),
       languages: profile.languages.map(({ language, level }) => ({ language, level })),
     },
@@ -74,7 +79,7 @@ export function reviewRequest(profile: Profile): ReviewRequest {
 
 /** Lohnt sich ein Check? Ohne Stationen und Kurzprofil gibt es kaum etwas zu bewerten. */
 export function canReview(profile: Profile) {
-  return profile.experience.length > 0 || profile.education.length > 0 || !!profile.summary;
+  return allEntries(profile).length > 0 || !!profile.summary;
 }
 
 // --- Antwort ---------------------------------------------------------------------------------
@@ -166,7 +171,7 @@ const responseSchema = z.object({
  */
 export function parseProfileReview(data: unknown, profile: Profile): ProfileReview {
   const response = responseSchema.parse(data);
-  const entries = [...profile.experience, ...profile.education];
+  const entries = allEntries(profile);
   const knownIds = new Set([...entries.map((e) => e.id), ...profile.skills.map((s) => s.id)]);
 
   const suggestions = (response.suggestions ?? []).flatMap((s): ReviewSuggestion[] => {
@@ -273,8 +278,10 @@ export function applyRewrite(profile: Profile, rewrite: ReviewRewrite): RewriteC
         onboardedAt: _onboardedAt,
         experience: _experience,
         education: _education,
+        volunteering: _volunteering,
         skills: _skills,
         languages: _languages,
+        links: _links,
         ...personal
       } = profile;
       return { kind: 'personal', personal: { ...personal, [rewrite.field]: rewrite.text } };
@@ -302,7 +309,8 @@ export type ProfileEditTarget =
   | { kind: 'summary' }
   | { kind: 'entry'; entryKind: ProfileEntryKind; entry?: ProfileEntry }
   | { kind: 'skill'; skill?: ProfileSkill }
-  | { kind: 'language'; language?: ProfileLanguage };
+  | { kind: 'language'; language?: ProfileLanguage }
+  | { kind: 'link'; link?: ProfileLink };
 
 /**
  * Wo der Nutzer einen Vorschlag selbst umsetzt: der Ersatztext bzw. die genannte Station oder
@@ -353,18 +361,22 @@ export function editTargetLabel(target: ProfileEditTarget): string {
     case 'summary':
       return 'Kurzprofil bearbeiten';
     case 'entry': {
-      const noun = target.entryKind === 'experience' ? 'Station' : 'Ausbildung';
+      const noun = { experience: 'Station', education: 'Ausbildung', volunteer: 'Ehrenamt' }[
+        target.entryKind
+      ];
       return target.entry ? `${noun} bearbeiten` : `${noun} hinzufügen`;
     }
     case 'skill':
       return target.skill ? 'Kenntnisse bearbeiten' : 'Kenntnisse hinzufügen';
     case 'language':
       return target.language ? 'Sprache bearbeiten' : 'Sprache hinzufügen';
+    case 'link':
+      return target.link ? 'Link bearbeiten' : 'Link hinzufügen';
   }
 }
 
 function findEntry(profile: Profile, id: string) {
-  return [...profile.experience, ...profile.education].find((e) => e.id === id);
+  return allEntries(profile).find((e) => e.id === id);
 }
 
 function findSkill(profile: Profile, id: string) {

@@ -4,6 +4,15 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.7.0 – 2026-11-22
+
+- Profil: **Links** zu LinkedIn, XING, GitHub, GitLab, Website und Sonstigem – Art wird an der
+  Adresse erkannt, „https://“ ergänzt, Klick öffnet im Browser.
+- Profil: neuer Abschnitt **Ehrenamt** neben Berufserfahrung und Ausbildung; Dokumente lassen sich
+  auch einem Ehrenamt zuordnen.
+- PDF-Import liest Ehrenamt und Links mit; Assistent fragt sie ab; KI-Check und Passung
+  berücksichtigen das Ehrenamt.
+
 ## 0.6.0 – 2026-11-22
 
 - **Passung** für Stellenangebote: Die KI vergleicht dein Profil mit der Anzeige – Score 0–100,

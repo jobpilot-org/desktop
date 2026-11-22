@@ -9,6 +9,7 @@ import { useApp, useData } from '../app-context';
 import {
   EntryDialog,
   LanguageDialog,
+  LinkDialog,
   PersonalDialog,
   SkillDialog,
 } from '../components/profile-dialogs';
@@ -16,6 +17,7 @@ import { PhotoThumb } from '../components/documents';
 import {
   EntriesSection,
   LanguagesSection,
+  LinksSection,
   PersonalSection,
   SkillsSection,
   SummarySection,
@@ -46,8 +48,10 @@ export function useProfile() {
           ...seed,
           experience: [],
           education: [],
+          volunteering: [],
           skills: [],
           languages: [],
+          links: [],
         });
   return { state, profile };
 }
@@ -89,6 +93,9 @@ export function useProfileEditor(profile: Profile) {
       )}
       {dialog?.kind === 'skill' && (
         <SkillDialog skill={dialog.skill} onClose={close} onSaved={onSaved} />
+      )}
+      {dialog?.kind === 'link' && (
+        <LinkDialog link={dialog.link} onClose={close} onSaved={onSaved} />
       )}
       {dialog?.kind === 'language' && (
         <LanguageDialog
@@ -136,6 +143,22 @@ export function useProfileEditor(profile: Profile) {
         onEdit={(entry) =>
           setDialog({ kind: 'entry', entryKind: 'education', entry })
         }
+      />
+    ),
+    volunteering: (
+      <EntriesSection
+        kind="volunteer"
+        entries={profile.volunteering}
+        documents={byEntry}
+        onEdit={(entry) =>
+          setDialog({ kind: 'entry', entryKind: 'volunteer', entry })
+        }
+      />
+    ),
+    links: (
+      <LinksSection
+        links={profile.links}
+        onEdit={(link) => setDialog({ kind: 'link', link })}
       />
     ),
     skills: (
@@ -205,9 +228,11 @@ function ProfileContent({
         ihn zu bearbeiten.
       </p>
       {sections.personal}
+      {sections.links}
       {sections.summary}
       {sections.experience}
       {sections.education}
+      {sections.volunteering}
       {sections.skills}
       {sections.languages}
       {dialogs}

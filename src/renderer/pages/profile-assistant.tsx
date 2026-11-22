@@ -29,13 +29,14 @@ const STEPS = [
       'Lege deine beruflichen Stationen an – die aktuelle zuerst. Du kannst jederzeit später ergänzen.',
   },
   {
-    title: 'Aus- und Weiterbildung',
-    intro: 'Abschlüsse, Studium, Ausbildung, Zertifikate und Weiterbildungen.',
+    title: 'Aus- und Weiterbildung, Ehrenamt',
+    intro:
+      'Abschlüsse, Studium, Ausbildung, Zertifikate und Weiterbildungen – und wo du dich ehrenamtlich engagierst.',
   },
   {
-    title: 'Kenntnisse und Sprachen',
+    title: 'Kenntnisse, Sprachen und Links',
     intro:
-      'Was kannst du? Gruppiere deine Kenntnisse, z. B. „Frontend: React, TypeScript“.',
+      'Was kannst du? Gruppiere deine Kenntnisse, z. B. „Frontend: React, TypeScript“, und ergänze Links wie LinkedIn oder GitHub.',
   },
 ] as const;
 
@@ -93,11 +94,17 @@ function Assistant({ profile }: { profile: Profile }) {
       {step >= 2 && (
         <>
           {step === 2 && sections.experience}
-          {step === 3 && sections.education}
+          {step === 3 && (
+            <>
+              {sections.education}
+              {sections.volunteering}
+            </>
+          )}
           {step === 4 && (
             <>
               {sections.skills}
               {sections.languages}
+              {sections.links}
             </>
           )}
           <WizardButtons onBack={back} last={last} onNext={next} />

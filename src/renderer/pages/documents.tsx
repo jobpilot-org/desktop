@@ -36,6 +36,7 @@ export function DocumentsPage() {
   const entries = [
     ...(profile?.experience ?? []),
     ...(profile?.education ?? []),
+    ...(profile?.volunteering ?? []),
   ];
   const entryName = (id?: string) => {
     const entry = id && entries.find((e) => e.id === id);

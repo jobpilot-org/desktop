@@ -47,8 +47,10 @@ const profile: Profile = {
       isCurrent: false,
     },
   ],
+  volunteering: [],
   skills: [{ id: 's1', category: 'Sprachen', items: 'TS, JS' }],
   languages: [{ id: 'l1', language: 'Englisch', level: 'C1' }],
+  links: [],
 };
 
 describe('reviewRequest', () => {

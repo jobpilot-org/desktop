@@ -2,7 +2,11 @@ import { useRef, useState, type DragEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import { reassignDocuments } from '@/domain/documents';
-import { summarizeProfileInput, type ProfileInput } from '@/domain/profile';
+import {
+  allEntries,
+  summarizeProfileInput,
+  type ProfileInput,
+} from '@/domain/profile';
 
 import { CvImportError, importCv } from '@/data/cv-import';
 
@@ -10,6 +14,7 @@ import { useApp, useData } from '../app-context';
 import {
   EntriesSection,
   LanguagesSection,
+  LinksSection,
   PersonalSection,
   SkillsSection,
   SummarySection,
@@ -39,8 +44,7 @@ export function ProfileImportPage() {
   const missingKey = keyState.data?.configured === false;
   const hasProfile =
     !!profile &&
-    (profile.experience.length > 0 ||
-      profile.education.length > 0 ||
+    (allEntries(profile).length > 0 ||
       profile.skills.length > 0 ||
       !!profile.summary);
 
@@ -78,16 +82,14 @@ export function ProfileImportPage() {
     const saved = await run(async () => {
       // Die Stationen bekommen neue ids; Dokumente danach wieder passend zuordnen
       const documents = await repos.documents.list();
-      const oldEntries = [
-        ...(profile?.experience ?? []),
-        ...(profile?.education ?? []),
-      ];
+      const oldEntries = profile ? allEntries(profile) : [];
       await repos.profile.replace(input);
       const fresh = await repos.profile.get();
-      const moves = reassignDocuments(documents, oldEntries, [
-        ...(fresh?.experience ?? []),
-        ...(fresh?.education ?? []),
-      ]);
+      const moves = reassignDocuments(
+        documents,
+        oldEntries,
+        fresh ? allEntries(fresh) : [],
+      );
       for (const move of moves) {
         const document = documents.find((d) => d.id === move.id)!;
         await repos.documents.update(document.id, {
@@ -192,6 +194,15 @@ export function ProfileImportPage() {
           <SummarySection summary={step.draft.summary} />
           <EntriesSection kind="experience" entries={step.draft.experience} />
           <EntriesSection kind="education" entries={step.draft.education} />
+          {step.draft.volunteering.length > 0 && (
+            <EntriesSection
+              kind="volunteer"
+              entries={step.draft.volunteering}
+            />
+          )}
+          {step.draft.links && step.draft.links.length > 0 && (
+            <LinksSection links={step.draft.links} />
+          )}
           <SkillsSection skills={step.draft.skills} />
           <LanguagesSection languages={step.draft.languages} />
           <div className="wizard-buttons">

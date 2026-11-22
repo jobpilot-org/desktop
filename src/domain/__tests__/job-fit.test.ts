@@ -28,8 +28,10 @@ const profile: Profile = {
     },
   ],
   education: [],
+  volunteering: [],
   skills: [{ id: 's1', category: 'Frontend', items: 'React, TypeScript' }],
   languages: [],
+  links: [],
 };
 
 const posting: FitPosting = {

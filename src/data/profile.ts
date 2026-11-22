@@ -5,6 +5,7 @@ import type {
   ProfileEntryKind,
   ProfileInput,
   ProfileLanguageInput,
+  ProfileLinkInput,
   ProfilePersonal,
   ProfileSkillInput,
 } from '@/domain/profile';
@@ -19,7 +20,11 @@ import {
 } from './mappers';
 import type { Supabase } from './supabase';
 
-type ListTable = 'profile_entries' | 'profile_skills' | 'profile_languages';
+type ListTable =
+  | 'profile_entries'
+  | 'profile_skills'
+  | 'profile_languages'
+  | 'profile_links';
 
 /** Lebenslauf des angemeldeten Nutzers: Kopfdaten, Stationen, Kenntnisse, Sprachen */
 export function createProfileRepository(supabase: Supabase) {
@@ -49,11 +54,12 @@ export function createProfileRepository(supabase: Supabase) {
   return {
     /** null, solange der Nutzer noch kein Profil angelegt hat */
     async get(): Promise<Profile | null> {
-      const [row, entries, skills, languages] = await Promise.all([
+      const [row, entries, skills, languages, links] = await Promise.all([
         supabase.from('profiles').select('*').maybeSingle(),
         supabase.from('profile_entries').select('*'),
         supabase.from('profile_skills').select('*'),
         supabase.from('profile_languages').select('*'),
+        supabase.from('profile_links').select('*'),
       ]);
       const profile = unwrap(row);
       if (!profile) return null;
@@ -62,6 +68,7 @@ export function createProfileRepository(supabase: Supabase) {
         unwrapList(entries),
         unwrapList(skills),
         unwrapList(languages),
+        unwrapList(links),
       );
     },
 
@@ -180,6 +187,32 @@ export function createProfileRepository(supabase: Supabase) {
 
     async deleteLanguage(id: string) {
       unwrap(await supabase.from('profile_languages').delete().eq('id', id));
+    },
+
+    /** Link anlegen (ohne id) oder überschreiben (mit id) */
+    async saveLink(input: ProfileLinkInput, id?: string) {
+      const values = {
+        kind: input.kind,
+        url: input.url,
+        label: input.label ?? null,
+      };
+      if (id) {
+        unwrap(
+          await supabase.from('profile_links').update(values).eq('id', id),
+        );
+        return;
+      }
+      unwrap(
+        await supabase.from('profile_links').insert({
+          ...values,
+          id: createId(),
+          position: nextPosition(await lastPositions('profile_links')),
+        }),
+      );
+    },
+
+    async deleteLink(id: string) {
+      unwrap(await supabase.from('profile_links').delete().eq('id', id));
     },
   };
 }

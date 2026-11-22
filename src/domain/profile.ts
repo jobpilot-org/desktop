@@ -2,19 +2,21 @@ import { z } from 'zod';
 
 import type { FormResult } from '@/domain/forms';
 
-// Profil = Lebenslauf des Nutzers: Kopfdaten, Kurzprofil, Stationen (Beruf und Ausbildung),
-// Kenntnisse und Sprachen. Gespeichert in Supabase (profiles, profile_entries, profile_skills,
-// profile_languages); `replace_profile` nimmt genau die Form von `ProfileInput` entgegen.
+// Profil = Lebenslauf des Nutzers: Kopfdaten, Kurzprofil, Stationen (Beruf, Ausbildung, Ehrenamt),
+// Kenntnisse, Sprachen und Links. Gespeichert in Supabase (profiles, profile_entries, profile_skills,
+// profile_languages, profile_links); `replace_profile` nimmt genau die Form von `ProfileInput`
+// entgegen.
 
 /** `YYYY` oder `YYYY-MM` – Lebensläufe nennen oft nur das Jahr */
 export type ProfilePeriod = string;
 
-export const PROFILE_ENTRY_KINDS = ['experience', 'education'] as const;
+export const PROFILE_ENTRY_KINDS = ['experience', 'education', 'volunteer'] as const;
 export type ProfileEntryKind = (typeof PROFILE_ENTRY_KINDS)[number];
 
 export const PROFILE_ENTRY_KIND_LABELS: Record<ProfileEntryKind, string> = {
   experience: 'Berufserfahrung',
   education: 'Aus- und Weiterbildung',
+  volunteer: 'Ehrenamt',
 };
 
 export type ProfileEntryInput = {
@@ -37,6 +39,20 @@ export type ProfileSkill = ProfileSkillInput & { id: string };
 export type ProfileLanguageInput = { language: string; level?: string };
 export type ProfileLanguage = ProfileLanguageInput & { id: string };
 
+export const LINK_KINDS = ['linkedin', 'xing', 'github', 'gitlab', 'website', 'other'] as const;
+export type ProfileLinkKind = (typeof LINK_KINDS)[number];
+export const LINK_KIND_LABELS: Record<ProfileLinkKind, string> = {
+  linkedin: 'LinkedIn',
+  xing: 'XING',
+  github: 'GitHub',
+  gitlab: 'GitLab',
+  website: 'Website',
+  other: 'Sonstiger Link',
+};
+
+export type ProfileLinkInput = { kind: ProfileLinkKind; url: string; label?: string };
+export type ProfileLink = ProfileLinkInput & { id: string };
+
 export type ProfilePersonal = {
   firstName: string;
   lastName: string;
@@ -57,16 +73,21 @@ export type Profile = ProfilePersonal & {
   onboardedAt?: string;
   experience: ProfileEntry[];
   education: ProfileEntry[];
+  volunteering: ProfileEntry[];
   skills: ProfileSkill[];
   languages: ProfileLanguage[];
+  links: ProfileLink[];
 };
 
 /** Ganzes Profil ohne ids – Eingabe für `replace_profile` (Import, Assistent) */
 export type ProfileInput = ProfilePersonal & {
   experience: ProfileEntryInput[];
   education: ProfileEntryInput[];
+  volunteering: ProfileEntryInput[];
   skills: ProfileSkillInput[];
   languages: ProfileLanguageInput[];
+  /** Fehlt das Feld, lässt `replace_profile` die Links unverändert */
+  links?: ProfileLinkInput[];
 };
 
 export function emptyProfileInput(seed: Partial<ProfilePersonal> = {}): ProfileInput {
@@ -76,9 +97,15 @@ export function emptyProfileInput(seed: Partial<ProfilePersonal> = {}): ProfileI
     ...seed,
     experience: [],
     education: [],
+    volunteering: [],
     skills: [],
     languages: [],
   };
+}
+
+/** Alle Stationen: Berufserfahrung, Ausbildung, Ehrenamt */
+export function allEntries(profile: Pick<Profile, 'experience' | 'education' | 'volunteering'>) {
+  return [...profile.experience, ...profile.education, ...profile.volunteering];
 }
 
 /** Profil ohne ids, z. B. um es nach einem Assistenten-Schritt komplett zu speichern */
@@ -88,16 +115,20 @@ export function profileToInput(profile: Profile): ProfileInput {
     onboardedAt: _onboardedAt,
     experience,
     education,
+    volunteering,
     skills,
     languages,
+    links,
     ...personal
   } = profile;
   return {
     ...personal,
     experience: experience.map(entry),
     education: education.map(entry),
+    volunteering: volunteering.map(entry),
     skills: skills.map(({ id: _id, ...rest }) => rest),
     languages: languages.map(({ id: _id, ...rest }) => rest),
+    links: links.map(({ id: _id, ...rest }) => rest),
   };
 }
 
@@ -268,8 +299,11 @@ export function parseEntryForm(
   const errors: Partial<Record<EntryFormField, string>> = {};
   const title = values.title.trim();
   if (!title) {
-    errors.title =
-      kind === 'experience' ? 'Bitte die Position eingeben' : 'Bitte den Abschluss eingeben';
+    errors.title = {
+      experience: 'Bitte die Position eingeben',
+      education: 'Bitte den Abschluss eingeben',
+      volunteer: 'Bitte die Tätigkeit eingeben',
+    }[kind];
   }
   const startDate = parsePeriodInput(values.startDate);
   if (startDate === null) errors.startDate = PERIOD_HINT;
@@ -369,6 +403,8 @@ export const profileDraftSchema = z.object({
   summary: draftText,
   experience: z.array(draftEntry).nullish(),
   education: z.array(draftEntry).nullish(),
+  volunteering: z.array(draftEntry).nullish(),
+  links: z.array(z.object({ kind: draftText, url: draftText })).nullish(),
   skills: z.array(z.object({ category: draftText, items: draftText })).nullish(),
   languages: z.array(z.object({ language: draftText, level: draftText })).nullish(),
 });
@@ -392,13 +428,24 @@ export function parseProfileDraft(data: unknown): ProfileInput {
         }),
       ];
     });
-  const { experience, education, skills, languages, ...personal } = draft;
+  const { experience, education, volunteering, links, skills, languages, ...personal } = draft;
   return {
     ...withoutUndefined(personal),
     firstName: personal.firstName ?? '',
     lastName: personal.lastName ?? '',
     experience: entries(experience),
     education: entries(education),
+    volunteering: entries(volunteering),
+    // Ohne Links im Lebenslauf das Feld weglassen – dann bleiben vorhandene Links erhalten
+    ...linksField(
+      (links ?? []).flatMap((link): ProfileLinkInput[] => {
+        const url = link.url && normalizeLinkUrl(link.url);
+        if (!url) return [];
+        const kind =
+          isLinkKind(link.kind) && link.kind !== 'other' ? link.kind : guessLinkKind(url);
+        return [{ kind, url }];
+      }),
+    ),
     skills: (skills ?? []).flatMap((skill) =>
       skill.items ? [withoutUndefined({ category: skill.category, items: skill.items })] : [],
     ),
@@ -415,12 +462,89 @@ export function summarizeProfileInput(profile: ProfileInput): string {
   const parts = [
     count(profile.experience.length, 'berufliche Station', 'berufliche Stationen'),
     count(profile.education.length, 'Aus-/Weiterbildung', 'Aus-/Weiterbildungen'),
+    ...(profile.volunteering.length
+      ? [count(profile.volunteering.length, 'Ehrenamt', 'Ehrenämter')]
+      : []),
     count(profile.skills.length, 'Kenntnisgruppe', 'Kenntnisgruppen'),
     count(profile.languages.length, 'Sprache', 'Sprachen'),
+    ...(profile.links?.length ? [count(profile.links.length, 'Link', 'Links')] : []),
   ];
   return parts.join(', ');
 }
 
 function count(n: number, one: string, many: string) {
   return `${n} ${n === 1 ? one : many}`;
+}
+
+// --- Links -----------------------------------------------------------------------------------
+
+function linksField(links: ProfileLinkInput[]): { links?: ProfileLinkInput[] } {
+  return links.length ? { links } : {};
+}
+
+export function isLinkKind(value: unknown): value is ProfileLinkKind {
+  return typeof value === 'string' && (LINK_KINDS as readonly string[]).includes(value);
+}
+
+/** „github.com/erika“ → „https://github.com/erika“; nur http(s), sonst undefined */
+export function normalizeLinkUrl(input: string): string | undefined {
+  const raw = input.trim();
+  if (!raw || /\s/.test(raw)) return undefined;
+  const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(withScheme);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
+    if (!url.hostname.includes('.')) return undefined;
+    return url.toString().length <= 500 ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const LINK_HOSTS: [RegExp, ProfileLinkKind][] = [
+  [/(^|\.)linkedin\.com$/, 'linkedin'],
+  [/(^|\.)xing\.(com|de)$/, 'xing'],
+  [/(^|\.)github\.com$/, 'github'],
+  [/(^|\.)gitlab\.(com|io)$|^gitlab\./, 'gitlab'],
+];
+
+/** Art aus der Adresse; Unbekanntes gilt als Website */
+export function guessLinkKind(url: string): ProfileLinkKind {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return LINK_HOSTS.find(([pattern]) => pattern.test(host))?.[1] ?? 'website';
+  } catch {
+    return 'other';
+  }
+}
+
+/** Anzeige: Beschriftung oder kurze Adresse ohne Protokoll, „www.“ und Schrägstrich am Ende */
+export function linkText(link: Pick<ProfileLinkInput, 'url' | 'label'>) {
+  if (link.label) return link.label;
+  return link.url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+}
+
+export type LinkFormValues = { kind: ProfileLinkKind | ''; url: string; label: string };
+export type LinkFormField = keyof LinkFormValues;
+
+export function parseLinkForm(
+  values: LinkFormValues,
+): FormResult<ProfileLinkInput, LinkFormField> {
+  const url = normalizeLinkUrl(values.url);
+  if (!url) {
+    return {
+      ok: false,
+      errors: { url: 'Bitte eine gültige Adresse eingeben, z. B. github.com/deinname' },
+    };
+  }
+  const label = values.label.trim();
+  if (label.length > 100) return { ok: false, errors: { label: 'Höchstens 100 Zeichen' } };
+  return {
+    ok: true,
+    value: withoutUndefined({
+      kind: values.kind || guessLinkKind(url),
+      url,
+      label: label || undefined,
+    }),
+  };
 }

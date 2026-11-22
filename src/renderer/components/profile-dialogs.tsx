@@ -19,6 +19,15 @@ import {
   type ProfilePersonal,
   type ProfileSkill,
   type SkillFormValues,
+  guessLinkKind,
+  LINK_KIND_LABELS,
+  LINK_KINDS,
+  linkText,
+  normalizeLinkUrl,
+  parseLinkForm,
+  type LinkFormField,
+  type LinkFormValues,
+  type ProfileLink,
 } from '@/domain/profile';
 
 import { useApp } from '../app-context';
@@ -196,6 +205,18 @@ const ENTRY_LABELS: Record<
     new: 'Neue Aus- oder Weiterbildung',
     edit: 'Aus- oder Weiterbildung bearbeiten',
   },
+  volunteer: {
+    title: 'Tätigkeit bzw. Funktion',
+    organization: 'Verein, Organisation oder Initiative',
+    new: 'Neues Ehrenamt',
+    edit: 'Ehrenamt bearbeiten',
+  },
+};
+
+const CURRENT_LABELS: Record<ProfileEntryKind, string> = {
+  experience: 'Ich arbeite noch hier',
+  education: 'Läuft noch',
+  volunteer: 'Ich engagiere mich noch',
 };
 
 export function EntryDialog({
@@ -278,7 +299,7 @@ export function EntryDialog({
               setValues({ ...values, isCurrent: e.target.checked })
             }
           />
-          {kind === 'experience' ? 'Ich arbeite noch hier' : 'Läuft noch'}
+          {CURRENT_LABELS[kind]}
         </label>
         <Field
           label="Stichpunkte (einer pro Zeile)"
@@ -440,6 +461,101 @@ export function LanguageDialog({
           onClose={onClose}
           onDelete={language ? remove : undefined}
         />
+      </form>
+    </Dialog>
+  );
+}
+
+export function LinkDialog({
+  link,
+  onClose,
+  onSaved,
+}: {
+  link?: ProfileLink;
+  onClose: () => void;
+  onSaved?: () => void;
+}) {
+  const { repos } = useApp();
+  const run = useAction();
+  const [values, setValues] = useState<LinkFormValues>({
+    kind: link?.kind ?? '',
+    url: link?.url ?? '',
+    label: link?.label ?? '',
+  });
+  const [errors, setErrors] = useState<Partial<Record<LinkFormField, string>>>(
+    {},
+  );
+  // Ohne Auswahl der Art wird sie aus der Adresse erkannt
+  const guessed = normalizeLinkUrl(values.url);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    const result = parseLinkForm(values);
+    if (!result.ok) return setErrors(result.errors);
+    if (
+      await run(
+        () => repos.profile.saveLink(result.value, link?.id),
+        'Gespeichert',
+      )
+    ) {
+      onSaved?.();
+      onClose();
+    }
+  }
+
+  async function remove() {
+    if (!link || !confirm(`Link „${linkText(link)}“ löschen?`)) return;
+    if (await run(() => repos.profile.deleteLink(link.id), 'Gelöscht')) {
+      onSaved?.();
+      onClose();
+    }
+  }
+
+  return (
+    <Dialog
+      title={link ? 'Link bearbeiten' : 'Neuer Link'}
+      open
+      onClose={onClose}
+    >
+      <form className="form-grid" onSubmit={submit} noValidate>
+        <Field label="Adresse" error={errors.url} wide>
+          <input
+            autoFocus
+            type="url"
+            placeholder="z. B. github.com/deinname"
+            value={values.url}
+            onChange={(e) => setValues({ ...values, url: e.target.value })}
+          />
+        </Field>
+        <Field label="Art" error={errors.kind}>
+          <select
+            value={values.kind}
+            onChange={(e) =>
+              setValues({
+                ...values,
+                kind: e.target.value as LinkFormValues['kind'],
+              })
+            }
+          >
+            <option value="">
+              Automatisch
+              {guessed ? ` (${LINK_KIND_LABELS[guessLinkKind(guessed)]})` : ''}
+            </option>
+            {LINK_KINDS.map((kind) => (
+              <option key={kind} value={kind}>
+                {LINK_KIND_LABELS[kind]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Beschriftung (optional)" error={errors.label}>
+          <input
+            placeholder="z. B. Portfolio"
+            value={values.label}
+            onChange={(e) => setValues({ ...values, label: e.target.value })}
+          />
+        </Field>
+        <DialogButtons onClose={onClose} onDelete={link ? remove : undefined} />
       </form>
     </Dialog>
   );

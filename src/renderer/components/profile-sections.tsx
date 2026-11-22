@@ -9,6 +9,9 @@ import {
   type ProfileLanguageInput,
   type ProfilePersonal,
   type ProfileSkillInput,
+  LINK_KIND_LABELS,
+  linkText,
+  type ProfileLinkInput,
 } from '@/domain/profile';
 
 import type { ProfileDocument } from '@/domain/documents';
@@ -118,6 +121,18 @@ export function SummarySection({
   );
 }
 
+const ADD_LABELS: Record<ProfileEntryKind, string> = {
+  experience: 'Station',
+  education: 'Ausbildung',
+  volunteer: 'Ehrenamt',
+};
+
+const EMPTY_TEXTS: Record<ProfileEntryKind, string> = {
+  experience: 'Noch keine beruflichen Stationen.',
+  education: 'Noch keine Aus- oder Weiterbildung.',
+  volunteer: 'Noch kein Ehrenamt – z. B. Verein, Initiative oder Engagement.',
+};
+
 export function EntriesSection<E extends WithId<ProfileEntryInput>>({
   kind,
   entries,
@@ -137,10 +152,7 @@ export function EntriesSection<E extends WithId<ProfileEntryInput>>({
       title={PROFILE_ENTRY_KIND_LABELS[kind]}
       action={
         onEdit && (
-          <AddButton
-            label={kind === 'experience' ? 'Station' : 'Ausbildung'}
-            onClick={() => onEdit()}
-          />
+          <AddButton label={ADD_LABELS[kind]} onClick={() => onEdit()} />
         )
       }
     >
@@ -190,11 +202,7 @@ export function EntriesSection<E extends WithId<ProfileEntryInput>>({
           })}
         </ul>
       ) : (
-        <Empty>
-          {kind === 'experience'
-            ? 'Noch keine beruflichen Stationen.'
-            : 'Noch keine Aus- oder Weiterbildung.'}
-        </Empty>
+        <Empty>{EMPTY_TEXTS[kind]}</Empty>
       )}
     </Section>
   );
@@ -289,5 +297,44 @@ function SimpleRow({
     </button>
   ) : (
     <div className="row-main profile-row">{body}</div>
+  );
+}
+
+export function LinksSection<K extends WithId<ProfileLinkInput>>({
+  links,
+  onEdit,
+}: {
+  links: K[];
+  /** Ohne Link: neuen anlegen */
+  onEdit?: (link?: K) => void;
+}) {
+  return (
+    <Section
+      title="Links"
+      action={onEdit && <AddButton label="Link" onClick={() => onEdit()} />}
+    >
+      {links.length ? (
+        <ul className="rows">
+          {links.map((link, index) => (
+            <li key={link.id ?? index} className="row">
+              <div className="row-main profile-row">
+                <strong className="profile-label">
+                  {LINK_KIND_LABELS[link.kind]}
+                </strong>
+                {/* Öffnet im Standardbrowser (setWindowOpenHandler in main.ts) */}
+                <a href={link.url} target="_blank" rel="noreferrer">
+                  {linkText(link)}
+                </a>
+              </div>
+              {onEdit && <EditButton onClick={() => onEdit(link)} />}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <Empty>
+          Noch keine Links – z. B. LinkedIn, XING, GitHub oder GitLab.
+        </Empty>
+      )}
+    </Section>
   );
 }

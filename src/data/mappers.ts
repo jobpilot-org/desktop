@@ -19,6 +19,8 @@ import type {
   ProfileEntryInput,
   ProfileEntryKind,
   ProfileLanguage,
+  ProfileLink,
+  ProfileLinkKind,
   ProfilePersonal,
   ProfileSkill,
 } from '@/domain/profile';
@@ -48,6 +50,7 @@ export type ProfileRow = Tables['profiles']['Row'];
 export type ProfileEntryRow = Tables['profile_entries']['Row'];
 export type ProfileSkillRow = Tables['profile_skills']['Row'];
 export type ProfileLanguageRow = Tables['profile_languages']['Row'];
+export type ProfileLinkRow = Tables['profile_links']['Row'];
 export type DocumentRow = Tables['documents']['Row'];
 export type JobPostingRow = Tables['job_postings']['Row'];
 
@@ -208,12 +211,13 @@ export function toProfilePersonalColumns(personal: ProfilePersonal) {
   };
 }
 
-/** Setzt das Profil aus der Kopfzeile und den drei Listen zusammen (Listen nach `position`) */
+/** Setzt das Profil aus der Kopfzeile und den Listen zusammen (Listen nach `position`) */
 export function toProfile(
   row: ProfileRow,
   entries: ProfileEntryRow[],
   skills: ProfileSkillRow[],
   languages: ProfileLanguageRow[],
+  links: ProfileLinkRow[] = [],
 ): Profile {
   const byPosition = <T extends { position: number }>(a: T, b: T) =>
     a.position - b.position;
@@ -233,6 +237,15 @@ export function toProfile(
     onboardedAt: optionalTimestamp(row.onboarded_at),
     experience: sortedEntries.filter((entry) => entry.kind === 'experience'),
     education: sortedEntries.filter((entry) => entry.kind === 'education'),
+    volunteering: sortedEntries.filter((entry) => entry.kind === 'volunteer'),
+    links: [...links].sort(byPosition).map(
+      (link): ProfileLink => ({
+        id: link.id,
+        kind: link.kind as ProfileLinkKind,
+        url: link.url,
+        label: optional(link.label),
+      }),
+    ),
     skills: [...skills].sort(byPosition).map(
       (skill): ProfileSkill => ({
         id: skill.id,

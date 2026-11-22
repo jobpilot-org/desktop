@@ -129,6 +129,9 @@ function sortedEntries(profile?: Profile) {
       compareEntriesNewestFirst,
     ),
     education: [...(profile?.education ?? [])].sort(compareEntriesNewestFirst),
+    volunteering: [...(profile?.volunteering ?? [])].sort(
+      compareEntriesNewestFirst,
+    ),
   };
 }
 
@@ -155,8 +158,9 @@ export function DocumentDialog({
   const entries = [
     ...(profile?.experience ?? []),
     ...(profile?.education ?? []),
+    ...(profile?.volunteering ?? []),
   ];
-  const { experience, education } = sortedEntries(profile);
+  const { experience, education, volunteering } = sortedEntries(profile);
   const [values, setValues] = useState<DocumentFormValues>(() => {
     if (document) {
       return {
@@ -272,6 +276,11 @@ export function DocumentDialog({
               {education.length > 0 && (
                 <optgroup label={PROFILE_ENTRY_KIND_LABELS.education}>
                   {education.map(entryOption)}
+                </optgroup>
+              )}
+              {volunteering.length > 0 && (
+                <optgroup label={PROFILE_ENTRY_KIND_LABELS.volunteer}>
+                  {volunteering.map(entryOption)}
                 </optgroup>
               )}
             </select>

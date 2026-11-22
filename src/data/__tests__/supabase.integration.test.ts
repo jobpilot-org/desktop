@@ -134,6 +134,7 @@ describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
         firstName: 'Test',
         lastName: 'Konto',
         headline: 'Integrationstest',
+        volunteering: [],
         experience: [
           {
             title: 'Alt',
@@ -319,5 +320,36 @@ describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
         await supabase.from('applications').delete().eq('id', applicationId);
     }
     expect(await repos.jobPostings.get(postingId)).toBeUndefined();
+  });
+
+  it('speichert Ehrenamt und Links im Profil', async () => {
+    const entryId = await repos.profile.saveEntry('volunteer', {
+      title: 'Jugendtrainerin',
+      organization: 'TSV Integrationstest',
+      isCurrent: true,
+    });
+    await repos.profile.saveLink({
+      kind: 'github',
+      url: 'https://github.com/integrationstest',
+    });
+    try {
+      const profile = await repos.profile.get();
+      expect(profile?.volunteering.map((e) => e.id)).toContain(entryId);
+      const link = profile?.links.find(
+        (l) => l.url === 'https://github.com/integrationstest',
+      );
+      expect(link).toMatchObject({ kind: 'github', label: undefined });
+      await repos.profile.saveLink({ ...link!, label: 'Code' }, link!.id);
+      expect(
+        (await repos.profile.get())?.links.find((l) => l.id === link!.id)
+          ?.label,
+      ).toBe('Code');
+    } finally {
+      await repos.profile.deleteEntry(entryId);
+      for (const link of (await repos.profile.get())?.links ?? []) {
+        if (link.url === 'https://github.com/integrationstest')
+          await repos.profile.deleteLink(link.id);
+      }
+    }
   });
 });

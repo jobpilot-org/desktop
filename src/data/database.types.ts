@@ -427,6 +427,37 @@ export type Database = {
         };
         Relationships: [];
       };
+      profile_links: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          label: string | null;
+          position: number;
+          url: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          label?: string | null;
+          position?: number;
+          url: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          label?: string | null;
+          position?: number;
+          url?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       profile_skills: {
         Row: {
           category: string | null;
