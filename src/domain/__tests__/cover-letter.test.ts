@@ -1,4 +1,5 @@
 import {
+  detectAddress,
   emptyLetter,
   letterRequest,
   letterText,
@@ -35,7 +36,7 @@ const posting = {
   company: 'Simple First',
   role: 'KI- & Digitalisierungsberater (m/w/d)',
   location: 'Remote',
-  jobDescription: 'Du führst KI-Projekte bei Kanzleien …',
+  jobDescription: 'Du führst KI-Projekte bei Kanzleien, dein Team unterstützt dich …',
   contactName: 'Julia Illgner',
   fit: {
     score: 70,
@@ -70,6 +71,25 @@ describe('Ansprache', () => {
   });
 });
 
+describe('Du oder Sie', () => {
+  it('erkennt die Anrede der Anzeige', () => {
+    expect(detectAddress('Du bringst Erfahrung mit und dein Team freut sich auf dich.')).toBe('du');
+    expect(detectAddress('Sie bringen Erfahrung mit. Ihre Aufgaben: …')).toBe('sie');
+    expect(detectAddress('Erfahrung mit React.')).toBeUndefined();
+    expect(detectAddress(undefined)).toBeUndefined();
+  });
+
+  it('schlägt Anreden für das Du vor', () => {
+    expect(salutationOptions(posting, 'du').map((o) => o.value)).toEqual([
+      'Hallo Julia,',
+      'Hi Julia,',
+      'Hallo Julia Illgner,',
+      'Hallo zusammen,',
+      'Hallo liebes Simple First-Team,',
+    ]);
+  });
+});
+
 describe('Vorgaben', () => {
   it('schlägt Stärken aus der Passung vor, ohne Doppelte', () => {
     expect(suggestedStrengths(posting)).toEqual([
@@ -83,7 +103,8 @@ describe('Vorgaben', () => {
   it('legt ein neues Anschreiben mit sinnvollen Vorgaben an', () => {
     expect(emptyLetter({ postingId: 'p1' }, posting)).toEqual({
       postingId: 'p1',
-      salutation: 'Sehr geehrte Frau Illgner,',
+      salutation: 'Hallo Julia,',
+      address: 'du',
       tone: 'modern',
       length: 'medium',
       strengths: [

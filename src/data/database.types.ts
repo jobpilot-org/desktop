@@ -184,6 +184,7 @@ export type Database = {
       };
       cover_letters: {
         Row: {
+          address: string;
           application_id: string | null;
           closing: string;
           created_at: string;
@@ -201,6 +202,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          address?: string;
           application_id?: string | null;
           closing?: string;
           created_at?: string;
@@ -217,6 +219,7 @@ export type Database = {
           user_id?: string;
         };
         Update: {
+          address?: string;
           application_id?: string | null;
           closing?: string;
           created_at?: string;

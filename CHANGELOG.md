@@ -4,6 +4,13 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.10.0 – 2026-11-22
+
+- Anschreiben: Du oder Sie wählbar – vorgeschlagen wird, wie die Stellenanzeige selbst anspricht;
+  die Anrede-Vorschläge passen sich an („Hallo Julia“ bzw. „Sehr geehrte Frau …“).
+- Mehr Tonalitäten: Förmlich, Konservativ, Modern & sachlich, Persönlich & warm, Begeistert,
+  Kreativ, Frech & mutig.
+
 ## 0.9.0 – 2026-11-22
 
 - Anschreiben-Assistent an jedem Stellenangebot und jeder Bewerbung: Ansprache wählen (aus der

@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 import {
+  detectAddress,
   emptyLetter,
+  LETTER_ADDRESS_LABELS,
+  LETTER_ADDRESSES,
   hasContent,
   LETTER_LENGTH_LABELS,
   LETTER_LENGTHS,
@@ -15,6 +18,7 @@ import {
   SECTION_LABELS,
   suggestedStrengths,
   type CoverLetterInput,
+  type LetterAddress,
   type LetterPosting,
   type SectionKey,
 } from '@/domain/cover-letter';
@@ -283,7 +287,14 @@ function LetterWizard({
         <SalutationStep
           posting={posting}
           value={letter.salutation}
+          address={letter.address}
           onChange={(salutation) => update({ salutation })}
+          onAddress={(address) =>
+            update({
+              address,
+              salutation: salutationOptions(posting, address)[0]!.value,
+            })
+          }
         />
       )}
       {step === 1 && (
@@ -402,19 +413,44 @@ function LetterWizard({
 function SalutationStep({
   posting,
   value,
+  address,
   onChange,
+  onAddress,
 }: {
   posting: LetterPosting;
   value: string;
+  address: LetterAddress;
   onChange: (value: string) => void;
+  onAddress: (address: LetterAddress) => void;
 }) {
-  const options = salutationOptions(posting);
+  const options = salutationOptions(posting, address);
   const custom = !options.some((o) => o.value === value);
+  const detected = detectAddress(posting.jobDescription);
   return (
     <div className="letter-step">
+      <h2 className="letter-step__title">Du oder Sie</h2>
+      <div className="segmented" role="group" aria-label="Du oder Sie">
+        {LETTER_ADDRESSES.map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={address === option}
+            onClick={() => onAddress(option)}
+          >
+            {LETTER_ADDRESS_LABELS[option]}
+            {detected === option ? ' · wie die Anzeige' : ''}
+          </button>
+        ))}
+      </div>
+      <p className="small muted">
+        {detected
+          ? `Die Anzeige ${detected === 'du' ? 'duzt' : 'siezt'} – Vorschlag: ${LETTER_ADDRESS_LABELS[detected]}.`
+          : 'Aus der Anzeige ist nicht klar, ob geduzt wird – im Zweifel Sie.'}
+      </p>
+      <h2 className="letter-step__title">Anrede</h2>
       <p className="small muted">
         {posting.contactName
-          ? `Ansprechperson laut Anzeige: ${posting.contactName}. Ob Frau oder Herr, wählst du selbst.`
+          ? `Ansprechperson laut Anzeige: ${posting.contactName}.${address === 'sie' ? ' Ob Frau oder Herr, wählst du selbst.' : ''}`
           : 'In der Anzeige steht keine Ansprechperson – wenn du einen Namen kennst, trag die Anrede selbst ein.'}
       </p>
       <div className="option-list" role="radiogroup" aria-label="Anrede">

@@ -7,18 +7,58 @@ import { reviewRequest, type ReviewRequest } from '@/domain/profile-review';
 // vorschlagen und der Nutzer jeden Teil ändern kann. Absender und Empfänger kommen beim Anzeigen
 // aus Profil und Stelle. Die KI schreibt über die Edge Function `cover-letter`.
 
-export const LETTER_TONES = ['formal', 'modern', 'personal'] as const;
+export const LETTER_TONES = [
+  'formal',
+  'conservative',
+  'modern',
+  'personal',
+  'enthusiastic',
+  'creative',
+  'bold',
+] as const;
 export type LetterTone = (typeof LETTER_TONES)[number];
 export const LETTER_TONE_LABELS: Record<LetterTone, string> = {
-  formal: 'Formell',
+  formal: 'Förmlich',
+  conservative: 'Konservativ',
   modern: 'Modern & sachlich',
-  personal: 'Persönlich',
+  personal: 'Persönlich & warm',
+  enthusiastic: 'Begeistert',
+  creative: 'Kreativ',
+  bold: 'Frech & mutig',
 };
 export const LETTER_TONE_HINTS: Record<LetterTone, string> = {
-  formal: 'Klassisch und gediegen – z. B. Banken, Behörden, Kanzleien',
+  formal: 'Korrekt, höflich, mit Abstand',
+  conservative: 'Klassisch und zurückhaltend – Banken, Behörden, Kanzleien',
   modern: 'Klar und direkt, ohne Floskeln – passt fast immer',
-  personal: 'Mit eigener Stimme, darf duzen, wenn die Anzeige duzt – Start-ups, Agenturen',
+  personal: 'Nahbar, mit eigener Stimme',
+  enthusiastic: 'Spürbare Energie für die Aufgabe',
+  creative: 'Ungewöhnlicher Aufhänger, bildhafte Sprache – Agenturen, Design',
+  bold: 'Selbstbewusst, mit Augenzwinkern – Start-ups',
 };
+
+/** Du oder Sie im Anschreiben */
+export const LETTER_ADDRESSES = ['sie', 'du'] as const;
+export type LetterAddress = (typeof LETTER_ADDRESSES)[number];
+export const LETTER_ADDRESS_LABELS: Record<LetterAddress, string> = {
+  sie: 'Sie',
+  du: 'Du',
+};
+
+const DU_WORDS = /\b(?:du|dich|dir|dein(?:e|en|em|er|es)?|euch|euer|eure(?:n|m|r|s)?)\b/giu;
+const SIE_WORDS = /\b(?:Sie|Ihnen|Ihre(?:n|m|r|s)?)\b/gu;
+
+/**
+ * Wie spricht die Anzeige selbst an? Zählt Du- und Sie-Formen im Anzeigentext; vorgeschlagen wird
+ * nur bei einem klaren Ergebnis (mindestens zwei Treffer und mehr als die andere Form).
+ */
+export function detectAddress(text?: string): LetterAddress | undefined {
+  if (!text) return undefined;
+  const du = text.match(DU_WORDS)?.length ?? 0;
+  const sie = text.match(SIE_WORDS)?.length ?? 0;
+  if (du >= 2 && du > sie) return 'du';
+  if (sie >= 2 && sie > du) return 'sie';
+  return undefined;
+}
 
 export const LETTER_LENGTHS = ['short', 'medium'] as const;
 export type LetterLength = (typeof LETTER_LENGTHS)[number];
@@ -51,6 +91,7 @@ export type CoverLetter = {
   postingId?: string;
   applicationId?: string;
   salutation: string;
+  address: LetterAddress;
   tone: LetterTone;
   length: LetterLength;
   strengths: string[];
@@ -78,38 +119,44 @@ export const TEAM_SALUTATION = 'Sehr geehrte Damen und Herren,';
 export type SalutationOption = { label: string; value: string };
 
 /**
- * Vorschläge für die Ansprache. Frau oder Herr leitet jobpilot nicht aus dem Vornamen ab – der
- * Nutzer wählt; steht „Frau“/„Herr“ schon in der Angabe, wird es übernommen.
+ * Vorschläge für die Ansprache, passend zu Du oder Sie. Frau oder Herr leitet jobpilot nicht aus dem
+ * Vornamen ab – der Nutzer wählt; steht „Frau“/„Herr“ schon in der Angabe, wird es übernommen.
  */
-export function salutationOptions(posting: Pick<LetterPosting, 'company' | 'contactName'>): SalutationOption[] {
+export function salutationOptions(
+  posting: Pick<LetterPosting, 'company' | 'contactName'>,
+  address: LetterAddress = 'sie',
+): SalutationOption[] {
   const options: SalutationOption[] = [];
+  const add = (text: string) => options.push({ label: text, value: `${text},` });
   const contact = posting.contactName?.trim().replace(/\s+/g, ' ');
-  if (contact) {
-    const titled = contact.match(/^(frau|herr)\s+(.+)$/i);
+  const company = posting.company.trim();
+  const titled = contact?.match(/^(frau|herr)\s+(.+)$/i);
+  const parts = contact?.split(' ') ?? [];
+
+  if (address === 'du') {
     if (titled) {
-      const lastName = titled[2]!;
-      const female = titled[1]!.toLowerCase() === 'frau';
-      options.push({
-        label: `${female ? 'Sehr geehrte Frau' : 'Sehr geehrter Herr'} ${lastName}`,
-        value: `${female ? 'Sehr geehrte Frau' : 'Sehr geehrter Herr'} ${lastName},`,
-      });
-    } else {
-      const parts = contact.split(' ');
-      const lastName = parts[parts.length - 1]!;
-      options.push(
-        { label: `Sehr geehrte Frau ${lastName}`, value: `Sehr geehrte Frau ${lastName},` },
-        { label: `Sehr geehrter Herr ${lastName}`, value: `Sehr geehrter Herr ${lastName},` },
-        { label: `Guten Tag ${contact}`, value: `Guten Tag ${contact},` },
-      );
+      add(`Hallo ${titled[1]![0]!.toUpperCase()}${titled[1]!.slice(1).toLowerCase()} ${titled[2]}`);
+    } else if (contact) {
+      add(`Hallo ${parts[0]}`);
+      add(`Hi ${parts[0]}`);
+      if (parts.length > 1) add(`Hallo ${contact}`);
     }
+    add('Hallo zusammen');
+    if (company) add(`Hallo liebes ${company}-Team`);
+    return options;
+  }
+
+  if (titled) {
+    const female = titled[1]!.toLowerCase() === 'frau';
+    add(`${female ? 'Sehr geehrte Frau' : 'Sehr geehrter Herr'} ${titled[2]}`);
+  } else if (contact) {
+    const lastName = parts[parts.length - 1]!;
+    add(`Sehr geehrte Frau ${lastName}`);
+    add(`Sehr geehrter Herr ${lastName}`);
+    add(`Guten Tag ${contact}`);
   }
   options.push({ label: 'Sehr geehrte Damen und Herren', value: TEAM_SALUTATION });
-  if (posting.company.trim()) {
-    options.push({
-      label: `Liebes Team von ${posting.company.trim()}`,
-      value: `Liebes Team von ${posting.company.trim()},`,
-    });
-  }
+  if (company) add(`Liebes Team von ${company}`);
   return options;
 }
 
@@ -143,9 +190,11 @@ export function emptyLetter(
   target: { postingId?: string; applicationId?: string },
   posting: LetterPosting,
 ): CoverLetterInput {
+  const address = detectAddress(posting.jobDescription) ?? 'sie';
   return {
     ...target,
-    salutation: salutationOptions(posting)[0]!.value,
+    salutation: salutationOptions(posting, address)[0]!.value,
+    address,
     tone: 'modern',
     length: 'medium',
     strengths: suggestedStrengths(posting).slice(0, 3),
@@ -160,6 +209,7 @@ export type LetterRequest = {
   profile: ReviewRequest['profile'];
   posting: { company: string; role: string; location?: string; description?: string };
   salutation: string;
+  address: LetterAddress;
   tone: LetterTone;
   length: LetterLength;
   strengths: string[];
@@ -185,6 +235,7 @@ export function letterRequest(
       description: posting.jobDescription?.trim().slice(0, 20_000) || undefined,
     },
     salutation: letter.salutation,
+    address: letter.address,
     tone: letter.tone,
     length: letter.length,
     strengths: letter.strengths.filter((s) => s.trim()).slice(0, 10),

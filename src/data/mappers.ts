@@ -407,6 +407,7 @@ export function toCoverLetter(row: CoverLetterRow): CoverLetter {
     postingId: row.posting_id ?? undefined,
     applicationId: row.application_id ?? undefined,
     salutation: row.salutation,
+    address: row.address === 'du' ? 'du' : 'sie',
     tone: (LETTER_TONES as readonly string[]).includes(row.tone)
       ? (row.tone as LetterTone)
       : 'modern',
@@ -435,6 +436,7 @@ export function toCoverLetterColumns(input: CoverLetterInput) {
     posting_id: input.postingId ?? null,
     application_id: input.applicationId ?? null,
     salutation: input.salutation.trim(),
+    address: input.address,
     tone: input.tone,
     length: input.length,
     strengths: input.strengths.map((s) => s.trim()).filter(Boolean),
