@@ -1873,3 +1873,32 @@ a.stat:hover {
   -webkit-line-clamp: 2;
   color: var(--muted);
 }
+
+/* Auswahl über Abschnitten und Vorschau (StyleBar) */
+.style-bar {
+  margin-top: 20px;
+  padding: 16px 18px 1px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.style-bar__fields {
+  display: grid;
+  grid-template-columns: auto minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 0 12px;
+  align-items: end;
+}
+
+.style-bar__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -18px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--jp-accent-soft);
+  color: var(--jp-accent-soft-text);
+}

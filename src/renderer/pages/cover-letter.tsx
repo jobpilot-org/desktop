@@ -20,6 +20,8 @@ import {
   suggestedStrengths,
   type CoverLetterInput,
   type LetterAddress,
+  type LetterLength,
+  type LetterTone,
   type LetterPosting,
   type SectionKey,
 } from '@/domain/cover-letter';
@@ -167,6 +169,10 @@ function LetterWizard({
   const [error, setError] = useState<string>();
   const [missingKey, setMissingKey] = useState(false);
   const [model, setModel] = useState<string>();
+  // Auswahl, mit der der jetzige Text geschrieben wurde – weicht sie ab, Neu-Erstellen anbieten
+  const [writtenWith, setWrittenWith] = useState(() =>
+    styleKey(loaded.letter?.input),
+  );
 
   const profileEmpty =
     !profile.summary?.trim() &&
@@ -210,7 +216,8 @@ function LetterWizard({
     );
   }
 
-  async function draft() {
+  /** Ganzes Anschreiben schreiben lassen; danach zu den Abschnitten bzw. im Schritt bleiben */
+  async function draft(nextStep = 2) {
     if (
       hasContent(letter) &&
       !confirm('Der neue Vorschlag ersetzt alle Abschnitte. Fortfahren?')
@@ -228,7 +235,8 @@ function LetterWizard({
       };
       setLetter(next);
       setModel(result.model);
-      if (await save(next, result.model)) setStep(2);
+      setWrittenWith(styleKey(next));
+      if (await save(next, result.model)) setStep(nextStep);
     } catch (e) {
       showError(e);
     } finally {
@@ -274,6 +282,7 @@ function LetterWizard({
     const fresh = emptyLetter(loaded.target, posting);
     setLetter(fresh);
     setModel(undefined);
+    setWrittenWith(undefined);
     setError(undefined);
     if (await save(fresh, undefined)) {
       setStep(0);
@@ -323,6 +332,19 @@ function LetterWizard({
           letter={letter}
           onChange={update}
           profileEmpty={profileEmpty}
+        />
+      )}
+      {step >= 2 && (
+        <StyleBar
+          posting={posting}
+          letter={letter}
+          onChange={update}
+          changed={
+            writtenWith !== undefined && styleKey(letter) !== writtenWith
+          }
+          busy={busy === 'draft'}
+          disabled={Boolean(busy)}
+          onRegenerate={() => void draft(step)}
         />
       )}
       {step === 2 && (
@@ -822,5 +844,126 @@ function LetterPaper({
         {parts.name}
       </p>
     </article>
+  );
+}
+
+/** Was den Text prägt: Du/Sie, Ton, Länge – die Anrede selbst greift ohne Neu-Erstellen */
+function styleKey(
+  letter?: Pick<CoverLetterInput, 'address' | 'tone' | 'length' | 'sections'>,
+) {
+  if (!letter || !hasContent(letter)) return undefined;
+  return `${letter.address}|${letter.tone}|${letter.length}`;
+}
+
+/**
+ * Auswahl über Abschnitten und Vorschau: Du/Sie, Anrede, Ton und Länge nachträglich ändern. Die
+ * Anrede gilt sofort; bei Du/Sie, Ton oder Länge bietet sie an, das Anschreiben neu zu erstellen.
+ */
+function StyleBar({
+  posting,
+  letter,
+  onChange,
+  changed,
+  busy,
+  disabled,
+  onRegenerate,
+}: {
+  posting: LetterPosting;
+  letter: CoverLetterInput;
+  onChange: (patch: Partial<CoverLetterInput>) => void;
+  changed: boolean;
+  busy: boolean;
+  disabled: boolean;
+  onRegenerate: () => void;
+}) {
+  const options = salutationOptions(posting, letter.address);
+  const custom = !options.some((o) => o.value === letter.salutation);
+  return (
+    <div className="style-bar">
+      <div className="style-bar__fields">
+        <div className="field">
+          <span className="field-label">Du oder Sie</span>
+          <div className="segmented" role="group" aria-label="Du oder Sie">
+            {LETTER_ADDRESSES.map((address) => (
+              <button
+                key={address}
+                type="button"
+                aria-pressed={letter.address === address}
+                disabled={disabled}
+                onClick={() =>
+                  onChange({
+                    address,
+                    salutation: salutationOptions(posting, address)[0]!.value,
+                  })
+                }
+              >
+                {LETTER_ADDRESS_LABELS[address]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <Field label="Anrede">
+          <select
+            value={custom ? '' : letter.salutation}
+            disabled={disabled}
+            onChange={(e) => onChange({ salutation: e.target.value })}
+          >
+            {custom && (
+              <option value="">{letter.salutation || 'Eigene Anrede'}</option>
+            )}
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Tonalität">
+          <select
+            value={letter.tone}
+            disabled={disabled}
+            onChange={(e) => onChange({ tone: e.target.value as LetterTone })}
+          >
+            {LETTER_TONES.map((tone) => (
+              <option key={tone} value={tone}>
+                {LETTER_TONE_LABELS[tone]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Länge">
+          <select
+            value={letter.length}
+            disabled={disabled}
+            onChange={(e) =>
+              onChange({ length: e.target.value as LetterLength })
+            }
+          >
+            {LETTER_LENGTHS.map((length) => (
+              <option key={length} value={length}>
+                {length === 'short' ? 'Kurz' : 'Standard'}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      {(changed || busy) && (
+        <div className="style-bar__notice">
+          <span>
+            {busy
+              ? 'Anschreiben wird mit der neuen Auswahl geschrieben …'
+              : 'Auswahl geändert – der Text passt noch zur alten.'}
+          </span>
+          <button
+            type="button"
+            className="primary"
+            disabled={disabled}
+            onClick={onRegenerate}
+          >
+            Mit neuer Auswahl neu erstellen
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

@@ -4,6 +4,12 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.12.0 – 2026-11-22
+
+- Anschreiben: Du/Sie, Anrede, Tonalität und Länge lassen sich auch nach dem Erstellen über den
+  Abschnitten und in der Vorschau ändern. Die Anrede gilt sofort; bei anderem Ton, anderer Länge
+  oder Du/Sie wird das Anschreiben auf Knopfdruck mit der neuen Auswahl neu erstellt.
+
 ## 0.11.0 – 2026-11-22
 
 - Anschreiben: „Neu beginnen“ verwirft ein vorhandenes Anschreiben und startet den Assistenten
