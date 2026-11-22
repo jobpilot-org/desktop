@@ -1,11 +1,12 @@
 import type { WorkMode } from '@/domain/application';
 import { applicationToForm, type ApplicationFormValues } from '@/domain/forms';
+import type { StoredFit } from '@/domain/job-fit';
 
 // Stellenangebote: gemerkte Anzeigen (z. B. aus der Browser-Extension), die noch keine Bewerbung
 // sind. Aus einem Stellenangebot wird erst eine Bewerbung, wenn der Nutzer sich bewirbt; dann zeigt
 // `applicationId` auf diese Bewerbung. Tabelle `job_postings` in ../backend.
 
-export type JobPosting = {
+export type JobPosting = StoredFit & {
   id: string;
   company: string;
   role: string;

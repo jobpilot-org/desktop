@@ -3,6 +3,7 @@ import { Navigate, NavLink, Outlet, useLocation } from 'react-router';
 // App-Symbol wie auf der Anmeldung; alt bleibt leer, die Wortmarke daneben benennt den Link
 import appIcon from '../../assets/icon.png';
 import { useApp, useData } from './app-context';
+import { useAutoFit } from './fit-runner';
 import { useReminderService } from './use-reminder-service';
 
 const NAV: { to: string; label: string; end: boolean; also?: string }[] = [
@@ -22,6 +23,7 @@ export function Layout() {
   const { session } = useApp();
   const { pathname } = useLocation();
   useReminderService();
+  useAutoFit();
   // Nach dem ersten Login zur Willkommensseite, bis ein Weg zum Profil gewählt ist
   const profile = useData((r) => r.profile.get());
   const needsWelcome = profile.status === 'ready' && !profile.data?.onboardedAt;

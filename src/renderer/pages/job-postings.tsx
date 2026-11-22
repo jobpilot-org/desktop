@@ -13,7 +13,9 @@ import {
 } from '@/domain/job-postings';
 
 import { useData } from '../app-context';
+import { FitBadge } from '../components/job-fit';
 import { useDeletePosting } from '../delete-actions';
+import { useProfile } from './profile';
 import { DeleteButton, Empty, formatDate, LoadError } from '../ui';
 
 /** Gemerkte Stellenangebote (z. B. aus der Browser-Extension) – noch keine Bewerbungen */
@@ -21,6 +23,7 @@ export function JobPostingsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<PostingFilter>('open');
   const remove = useDeletePosting();
+  const { profile } = useProfile();
   const state = useData(async (r) => {
     const [postings, applications] = await Promise.all([
       r.jobPostings.list(),
@@ -101,6 +104,7 @@ export function JobPostingsPage() {
                 </span>
               </button>
               <span className="row-actions">
+                <FitBadge posting={posting} profile={profile} />
                 <span className="posting-state" data-state={postingStateValue}>
                   {POSTING_STATE_LABELS[postingStateValue]}
                 </span>

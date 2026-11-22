@@ -9,7 +9,9 @@ import {
 import { POSTING_STATE_LABELS, postingState } from '@/domain/job-postings';
 
 import { useApp, useData } from '../app-context';
+import { FitSection } from '../components/job-fit';
 import { useDeletePosting } from '../delete-actions';
+import { useProfile } from './profile';
 import { Empty, formatDate, LoadError, Section, useAction } from '../ui';
 
 /** Ein Stellenangebot: Eckdaten, Anzeige, Ansprechpartner – und daraus eine Bewerbung machen */
@@ -19,6 +21,7 @@ export function JobPostingDetailPage() {
   const navigate = useNavigate();
   const run = useAction();
   const deletePosting = useDeletePosting();
+  const { profile } = useProfile();
 
   const state = useData(
     async (r) => {
@@ -139,6 +142,8 @@ export function JobPostingDetailPage() {
           )}
         </div>
       )}
+
+      <FitSection posting={posting} profile={profile} />
 
       <div className="columns">
         <div className="stack">

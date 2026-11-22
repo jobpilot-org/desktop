@@ -1483,3 +1483,156 @@ a.stat:hover {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* --- Passung (components/job-fit.tsx) --- */
+
+.fit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--jp-status-saved-bg);
+  color: var(--jp-status-saved-text);
+}
+
+.fit-badge[data-level='hoch'] {
+  background: var(--jp-status-interview-bg);
+  color: var(--jp-status-interview-text);
+}
+
+.fit-badge[data-level='mittel'] {
+  background: var(--jp-status-offer-bg);
+  color: var(--jp-status-offer-text);
+}
+
+.fit-badge[data-level='gering'] {
+  background: var(--jp-status-rejected-bg);
+  color: var(--jp-status-rejected-text);
+}
+
+.fit-badge[data-outdated] {
+  opacity: 0.55;
+}
+
+.fit {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fit p,
+.fit h3 {
+  margin: 0;
+}
+
+.fit h3 {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fit-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.fit-score {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: var(--jp-status-saved-bg);
+  color: var(--jp-status-saved-text);
+}
+
+.fit-score strong {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.fit-score span {
+  font-size: 11px;
+}
+
+.fit-score[data-level='hoch'] {
+  background: var(--jp-status-interview-bg);
+  color: var(--jp-status-interview-text);
+}
+
+.fit-score[data-level='mittel'] {
+  background: var(--jp-status-offer-bg);
+  color: var(--jp-status-offer-text);
+}
+
+.fit-score[data-level='gering'] {
+  background: var(--jp-status-rejected-bg);
+  color: var(--jp-status-rejected-text);
+}
+
+.fit-level {
+  font-weight: 700;
+}
+
+.fit-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.fit-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.fit-list li {
+  position: relative;
+  padding: 2px 0 2px 20px;
+}
+
+.fit-list li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: var(--muted);
+}
+
+.fit-list[data-kind='pro'] li::before {
+  content: '✓';
+  color: var(--jp-status-interview-dot);
+}
+
+.fit-list[data-kind='con'] li::before {
+  content: '✗';
+  color: var(--jp-status-rejected-dot);
+}
+
+.fit-prognosis {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--jp-accent-soft);
+  color: var(--jp-accent-soft-text);
+}
+
+.fit-prognosis .jp-eyebrow {
+  color: var(--jp-accent-soft-eyebrow);
+}
+
+.fit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}

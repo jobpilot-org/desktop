@@ -17,11 +17,28 @@ import {
 } from '../theme';
 import { Field, LoadError, Section, useAction, useToast } from '../ui';
 
+const FIT_CONSENT =
+  'Für die Passung werden dein Profil – ohne Name, Anschrift, Telefon, E-Mail und Geburtsdaten – und der Anzeigentext an den jobpilot-Server gesendet und von dort mit deinem eigenen KI-Key an den KI-Anbieter (Anthropic) weitergeleitet.';
+
 export function SettingsPage() {
   const { repos, supabase, session } = useApp();
   const run = useAction();
   const toast = useToast();
   const state = useData((r) => r.reminders.settings());
+  const fitAuto = useData((r) => r.settings.get('ai.fit.auto'));
+
+  async function toggleFitAuto(enabled: boolean) {
+    if (enabled && (await repos.settings.get('ai.consent')) !== 'yes') {
+      if (!confirm(`${FIT_CONSENT}\n\nEinverstanden?`)) return;
+      await run(() => repos.settings.set('ai.consent', 'yes'));
+    }
+    await run(
+      () => repos.settings.set('ai.fit.auto', enabled ? 'yes' : 'no'),
+      enabled
+        ? 'Neue Stellenangebote werden automatisch bewertet'
+        : 'Passung nur noch auf Knopfdruck',
+    );
+  }
   const [theme, setThemeState] = useState<Theme>();
   useEffect(() => {
     void loadTheme().then(setThemeState);
@@ -151,6 +168,21 @@ export function SettingsPage() {
 
       <Section title="KI">
         <AiKeySettings />
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={fitAuto.data === 'yes'}
+            disabled={fitAuto.status === 'loading'}
+            onChange={(e) => void toggleFitAuto(e.target.checked)}
+          />
+          Neue Stellenangebote automatisch auf Passung bewerten
+        </label>
+        <p className="muted">
+          Aus: Bewertung nur auf Knopfdruck im Stellenangebot. Jede Bewertung
+          läuft über deinen eigenen KI-Key und kostet etwas Guthaben; ändert
+          sich dein Profil, wird nur auf Knopfdruck neu bewertet. Gilt für dein
+          Konto.
+        </p>
       </Section>
 
       <Section title="Konto">

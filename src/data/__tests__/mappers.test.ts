@@ -159,6 +159,12 @@ describe('toJobPosting', () => {
         dismissed_at: '2026-11-22T09:00:00+00:00',
         created_at: '2026-11-22T08:00:00+00:00',
         updated_at: '2026-11-22T08:00:00+00:00',
+        fit_score: null,
+        fit_result: null,
+        fit_profile_hash: null,
+        fit_posting_hash: null,
+        fit_model: null,
+        fit_at: null,
       }),
     ).toEqual({
       id: 'p1',
@@ -176,6 +182,10 @@ describe('toJobPosting', () => {
       applicationId: undefined,
       dismissedAt: '2026-11-22T09:00:00.000Z',
       createdAt: '2026-11-22T08:00:00.000Z',
+      fit: undefined,
+      fitProfileHash: undefined,
+      fitPostingHash: undefined,
+      fitAt: undefined,
     });
   });
 });
@@ -194,6 +204,18 @@ describe('toJobPostingColumns', () => {
       contactName: 'Frau Muster',
       applicationId: 'a1',
       createdAt: '2026-11-22T08:00:00.000Z',
+      fit: {
+        score: 81,
+        level: 'hoch' as const,
+        summary: 'Passt.',
+        pros: ['React'],
+        cons: [],
+        prognosis: { chance: 'mittel' as const, text: 'Gut.' },
+        emphasize: [],
+      },
+      fitProfileHash: 'p1',
+      fitPostingHash: 'j1',
+      fitAt: '2026-11-22T09:00:00.000Z',
     };
     const columns = toJobPostingColumns(posting);
     expect(
@@ -201,6 +223,7 @@ describe('toJobPostingColumns', () => {
         ...columns,
         user_id: '11111111-1111-1111-1111-111111111111',
         updated_at: columns.created_at,
+        fit_model: 'claude-opus-5-5',
       }),
     ).toEqual({
       ...posting,

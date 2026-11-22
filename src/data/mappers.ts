@@ -27,10 +27,11 @@ import type {
   DocumentMimeType,
   ProfileDocument,
 } from '@/domain/documents';
+import { parseFit, type FitResult } from '@/domain/job-fit';
 import type { JobPosting } from '@/domain/job-postings';
 import type { Reminder, ReminderKind } from '@/domain/reminders';
 
-import type { Database } from './database.types';
+import type { Database, Json } from './database.types';
 
 // Spalten der Datenbank (snake_case, null) ↔ Domain-Typen (camelCase, fehlende Felder).
 // Die Check-Constraints der Migration lassen für Status, Art usw. nur die Werte aus `domain/` zu,
@@ -280,7 +281,21 @@ export function toJobPosting(row: JobPostingRow): JobPosting {
     applicationId: row.application_id ?? undefined,
     dismissedAt: optionalTimestamp(row.dismissed_at),
     createdAt: toIsoTimestamp(row.created_at),
+    fit: storedFit(row.fit_result),
+    fitProfileHash: row.fit_profile_hash ?? undefined,
+    fitPostingHash: row.fit_posting_hash ?? undefined,
+    fitAt: optionalTimestamp(row.fit_at),
   };
+}
+
+/** Gespeicherte Passung; ein unlesbares Ergebnis gilt als „noch nicht bewertet“ */
+function storedFit(value: unknown): FitResult | undefined {
+  if (value === null || value === undefined) return undefined;
+  try {
+    return parseFit(value);
+  } catch {
+    return undefined;
+  }
 }
 
 /** Alle Spalten eines Stellenangebots – zum Wiederherstellen nach dem Löschen („Rückgängig“) */
@@ -301,6 +316,11 @@ export function toJobPostingColumns(posting: JobPosting) {
     application_id: posting.applicationId ?? null,
     dismissed_at: posting.dismissedAt ?? null,
     created_at: posting.createdAt,
+    fit_score: posting.fit?.score ?? null,
+    fit_result: (posting.fit as Json | undefined) ?? null,
+    fit_profile_hash: posting.fitProfileHash ?? null,
+    fit_posting_hash: posting.fitPostingHash ?? null,
+    fit_at: posting.fitAt ?? null,
   } satisfies Tables['job_postings']['Insert'];
 }
 

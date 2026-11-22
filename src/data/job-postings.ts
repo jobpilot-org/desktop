@@ -1,3 +1,4 @@
+import type { FitResult } from '@/domain/job-fit';
 import type { JobPosting } from '@/domain/job-postings';
 
 import {
@@ -73,6 +74,29 @@ export function createJobPostingsRepository(supabase: Supabase) {
 
     async remove(id: string) {
       unwrap(await supabase.from('job_postings').delete().eq('id', id));
+    },
+
+    /** Ergebnis der Passung mit den Hashes, aus denen es entstand */
+    async saveFit(
+      id: string,
+      fit: FitResult,
+      hashes: { profile: string; posting: string },
+      model: string | undefined,
+      now = new Date(),
+    ) {
+      unwrap(
+        await supabase
+          .from('job_postings')
+          .update({
+            fit_score: fit.score,
+            fit_result: fit,
+            fit_profile_hash: hashes.profile,
+            fit_posting_hash: hashes.posting,
+            fit_model: model ?? null,
+            fit_at: now.toISOString(),
+          })
+          .eq('id', id),
+      );
     },
 
     /** „Rückgängig“ nach dem Löschen: legt das Stellenangebot mit derselben id wieder an */

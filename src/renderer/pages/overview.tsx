@@ -13,12 +13,15 @@ import { postingState } from '@/domain/job-postings';
 import { dueToday } from '@/domain/reminders';
 
 import { useData } from '../app-context';
+import { FitBadge } from '../components/job-fit';
 import { ReminderList } from '../components/reminder-list';
+import { useProfile } from './profile';
 import { Empty, LoadError, Section } from '../ui';
 
 const DAY = 24 * 60 * 60 * 1000;
 
 export function OverviewPage() {
+  const { profile } = useProfile();
   const state = useData(async (repos) => {
     const now = new Date();
     const [applications, reminders, appointments, postings] = await Promise.all(
@@ -133,6 +136,7 @@ export function OverviewPage() {
                       .join(' · ')}
                   </span>
                 </div>
+                <FitBadge posting={posting} profile={profile} />
               </li>
             ))}
           </ul>

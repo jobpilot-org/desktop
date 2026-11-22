@@ -241,6 +241,12 @@ export type Database = {
           contact_name: string | null;
           created_at: string;
           dismissed_at: string | null;
+          fit_at: string | null;
+          fit_model: string | null;
+          fit_posting_hash: string | null;
+          fit_profile_hash: string | null;
+          fit_result: Json | null;
+          fit_score: number | null;
           id: string;
           job_description: string | null;
           job_url: string | null;
@@ -261,6 +267,12 @@ export type Database = {
           contact_name?: string | null;
           created_at?: string;
           dismissed_at?: string | null;
+          fit_at?: string | null;
+          fit_model?: string | null;
+          fit_posting_hash?: string | null;
+          fit_profile_hash?: string | null;
+          fit_result?: Json | null;
+          fit_score?: number | null;
           id?: string;
           job_description?: string | null;
           job_url?: string | null;
@@ -280,6 +292,12 @@ export type Database = {
           contact_name?: string | null;
           created_at?: string;
           dismissed_at?: string | null;
+          fit_at?: string | null;
+          fit_model?: string | null;
+          fit_posting_hash?: string | null;
+          fit_profile_hash?: string | null;
+          fit_result?: Json | null;
+          fit_score?: number | null;
           id?: string;
           job_description?: string | null;
           job_url?: string | null;

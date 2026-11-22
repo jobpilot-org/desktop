@@ -3,6 +3,8 @@ import type { Supabase } from './supabase';
 
 export type SettingKey =
   | 'ai.consent'
+  /** 'yes' = neue Stellenangebote automatisch auf Passung bewerten */
+  | 'ai.fit.auto'
   | 'applications.filter'
   | 'applications.sort'
   | 'applications.view'
