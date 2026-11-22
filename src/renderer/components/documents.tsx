@@ -23,7 +23,7 @@ import {
 } from '@/domain/profile';
 
 import { useApp } from '../app-context';
-import { Dialog, Field, useAction, useToast } from '../ui';
+import { Dialog, Field, useAction, useToast, useConfirm } from '../ui';
 
 // Bausteine der Dokumentenverwaltung – Dokumentenseite und Profil. Dateien liegen im privaten
 // Bucket; geöffnet wird über eine kurzlebige signierte Adresse im Standardprogramm (Browser bzw.
@@ -153,6 +153,7 @@ export function DocumentDialog({
   profile?: Profile;
   onClose: () => void;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const entries = [
@@ -209,7 +210,15 @@ export function DocumentDialog({
   }
 
   async function remove() {
-    if (!document || !confirm(`„${document.title}“ löschen?`)) return;
+    if (
+      !document ||
+      !(await confirm({
+        title: `„${document.title}“ löschen?`,
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
+    )
+      return;
     if (await run(() => repos.documents.remove(document), 'Gelöscht'))
       onClose();
   }

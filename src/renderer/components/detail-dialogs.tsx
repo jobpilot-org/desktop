@@ -20,7 +20,7 @@ import {
 } from '@/domain/forms';
 
 import { useApp } from '../app-context';
-import { Dialog, Field, toDateTimeLocal, useAction } from '../ui';
+import { Dialog, Field, toDateTimeLocal, useAction, useConfirm } from '../ui';
 
 // Jeder Dialog wird nur gerendert, solange er offen ist – so startet das Formular immer frisch.
 
@@ -59,6 +59,7 @@ export function AppointmentDialog({
   appointment?: Appointment;
   onClose: () => void;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const [values, setValues] = useState<AppointmentFormValues>(
@@ -85,7 +86,15 @@ export function AppointmentDialog({
   }
 
   async function remove() {
-    if (!appointment || !confirm('Diesen Termin löschen?')) return;
+    if (
+      !appointment ||
+      !(await confirm({
+        title: 'Diesen Termin löschen?',
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
+    )
+      return;
     if (
       await run(
         () => repos.details.deleteAppointment(appointment.id),
@@ -173,6 +182,7 @@ export function ContactDialog({
   contact?: Contact;
   onClose: () => void;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const [values, setValues] = useState<ContactFormValues>(
@@ -194,7 +204,15 @@ export function ContactDialog({
   }
 
   async function remove() {
-    if (!contact || !confirm(`${contact.name} löschen?`)) return;
+    if (
+      !contact ||
+      !(await confirm({
+        title: `${contact.name} löschen?`,
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
+    )
+      return;
     if (
       await run(
         () => repos.details.deleteContact(contact.id),

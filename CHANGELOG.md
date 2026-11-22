@@ -4,6 +4,11 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.12.1 – 2026-11-22
+
+- Rückfragen (Löschen, KI-Zustimmung, Anschreiben neu erstellen bzw. neu beginnen) erscheinen im
+  jobpilot-Stil mit deutschen Knöpfen statt als Systemdialog mit „Cancel“/„OK“.
+
 ## 0.12.0 – 2026-11-22
 
 - Anschreiben: Du/Sie, Anrede, Tonalität und Länge lassen sich auch nach dem Erstellen über den

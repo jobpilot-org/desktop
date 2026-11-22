@@ -14,7 +14,7 @@ import { JobFitError } from '@/data/job-fit';
 
 import { useApp, useData } from '../app-context';
 import { useRunFit, useRunningFits } from '../fit-runner';
-import { formatDateTime, Section } from '../ui';
+import { formatDateTime, Section, useConfirm } from '../ui';
 
 const CONSENT_TEXT =
   'Für die Passung werden dein Profil – ohne Name, Anschrift, Telefon, E-Mail und Geburtsdaten – und der Anzeigentext an den jobpilot-Server gesendet und von dort mit deinem eigenen KI-Key an den KI-Anbieter (Anthropic) weitergeleitet.';
@@ -78,6 +78,7 @@ export function FitSection({
   posting: JobPosting;
   profile?: Profile;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const runFit = useRunFit();
   const running = useRunningFits().has(posting.id);
@@ -93,7 +94,14 @@ export function FitSection({
     if (!profile) return;
     setError(undefined);
     if ((await repos.settings.get('ai.consent')) !== 'yes') {
-      if (!confirm(`${CONSENT_TEXT}\n\nEinverstanden?`)) return;
+      if (
+        !(await confirm({
+          title: 'KI nutzen?',
+          message: CONSENT_TEXT,
+          confirmLabel: 'Einverstanden',
+        }))
+      )
+        return;
       await repos.settings.set('ai.consent', 'yes');
     }
     try {

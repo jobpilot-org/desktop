@@ -67,6 +67,75 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 export const useToast = () => useContext(ToastContext);
 
+// --- Rückfrage -------------------------------------------------------------------------------
+
+export type ConfirmOptions = {
+  title: string;
+  message?: string;
+  /** Beschriftung der Bestätigung, z. B. „Löschen“ */
+  confirmLabel?: string;
+  cancelLabel?: string;
+  /** Bestätigung als Gefahr (rot), z. B. beim Löschen */
+  danger?: boolean;
+};
+
+const ConfirmContext = createContext<
+  (options: ConfirmOptions) => Promise<boolean>
+>(() => Promise.resolve(false));
+
+/**
+ * Rückfrage im jobpilot-Stil statt window.confirm(): `await confirm({ title, … })` liefert, ob
+ * bestätigt wurde. Escape und „Abbrechen“ zählen als Nein.
+ */
+export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const [pending, setPending] = useState<
+    ConfirmOptions & { resolve: (ok: boolean) => void }
+  >();
+
+  const ask = useCallback(
+    (options: ConfirmOptions) =>
+      new Promise<boolean>((resolve) => setPending({ ...options, resolve })),
+    [],
+  );
+
+  function answer(ok: boolean) {
+    pending?.resolve(ok);
+    setPending(undefined);
+  }
+
+  return (
+    <ConfirmContext.Provider value={ask}>
+      {children}
+      <Dialog
+        title={pending?.title ?? ''}
+        open={Boolean(pending)}
+        onClose={() => answer(false)}
+        className="dialog--confirm"
+      >
+        {pending?.message && (
+          <p className="confirm-message">{pending.message}</p>
+        )}
+        <div className="dialog-buttons">
+          <span className="spacer" />
+          <button type="button" onClick={() => answer(false)}>
+            {pending?.cancelLabel ?? 'Abbrechen'}
+          </button>
+          <button
+            type="button"
+            className={pending?.danger ? 'danger' : 'primary'}
+            autoFocus
+            onClick={() => answer(true)}
+          >
+            {pending?.confirmLabel ?? 'OK'}
+          </button>
+        </div>
+      </Dialog>
+    </ConfirmContext.Provider>
+  );
+}
+
+export const useConfirm = () => useContext(ConfirmContext);
+
 /**
  * Führt eine Schreibaktion aus, meldet danach die Änderung (Listen laden neu) und zeigt Fehler
  * als Toast. Gibt zurück, ob es geklappt hat.
@@ -230,11 +299,13 @@ export function Dialog({
   open,
   onClose,
   children,
+  className,
 }: {
   title: string;
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -245,7 +316,11 @@ export function Dialog({
   }, [open]);
 
   return (
-    <dialog ref={ref} className="dialog" onClose={onClose}>
+    <dialog
+      ref={ref}
+      className={className ? `dialog ${className}` : 'dialog'}
+      onClose={onClose}
+    >
       {open && (
         <>
           <h2>{title}</h2>

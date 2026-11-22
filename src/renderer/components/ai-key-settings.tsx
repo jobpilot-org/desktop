@@ -9,10 +9,12 @@ import {
   LoadError,
   PasswordInput,
   useAction,
+  useConfirm,
 } from '../ui';
 
 /** Eigener KI-Key wie in der mobile-app (api-key-settings.tsx); gilt für alle Apps des Kontos */
 export function AiKeySettings() {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const state = useData(async (r) => ({
@@ -35,9 +37,13 @@ export function AiKeySettings() {
 
   async function remove() {
     if (
-      !confirm(
-        'Deinen gespeicherten API-Key löschen? KI-Funktionen gehen erst wieder, wenn du einen neuen hinterlegst.',
-      )
+      !(await confirm({
+        title: 'API-Key löschen?',
+        message:
+          'KI-Funktionen gehen erst wieder, wenn du einen neuen hinterlegst.',
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
     ) {
       return;
     }

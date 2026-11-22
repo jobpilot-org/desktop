@@ -31,7 +31,7 @@ import {
 } from '@/domain/profile';
 
 import { useApp } from '../app-context';
-import { Dialog, Field, useAction } from '../ui';
+import { Dialog, Field, useAction, useConfirm } from '../ui';
 
 // Dialoge der Profilseite und des Assistenten. Jeder Dialog wird nur gerendert, solange er offen
 // ist – so startet das Formular immer frisch (wie detail-dialogs.tsx).
@@ -231,6 +231,7 @@ export function EntryDialog({
   onClose: () => void;
   onSaved?: () => void;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const labels = ENTRY_LABELS[kind];
@@ -262,7 +263,15 @@ export function EntryDialog({
   }
 
   async function remove() {
-    if (!entry || !confirm(`„${entry.title}“ löschen?`)) return;
+    if (
+      !entry ||
+      !(await confirm({
+        title: `„${entry.title}“ löschen?`,
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
+    )
+      return;
     if (await run(() => repos.profile.deleteEntry(entry.id), 'Gelöscht')) {
       onSaved?.();
       onClose();
@@ -326,6 +335,7 @@ export function SkillDialog({
   onClose: () => void;
   onSaved?: () => void;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const [values, setValues] = useState<SkillFormValues>({
@@ -352,7 +362,15 @@ export function SkillDialog({
   }
 
   async function remove() {
-    if (!skill || !confirm('Diese Kenntnisse löschen?')) return;
+    if (
+      !skill ||
+      !(await confirm({
+        title: 'Diese Kenntnisse löschen?',
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
+    )
+      return;
     if (await run(() => repos.profile.deleteSkill(skill.id), 'Gelöscht')) {
       onSaved?.();
       onClose();
@@ -400,6 +418,7 @@ export function LanguageDialog({
   onClose: () => void;
   onSaved?: () => void;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const [values, setValues] = useState<LanguageFormValues>({
@@ -426,7 +445,15 @@ export function LanguageDialog({
   }
 
   async function remove() {
-    if (!language || !confirm(`${language.language} löschen?`)) return;
+    if (
+      !language ||
+      !(await confirm({
+        title: `${language.language} löschen?`,
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
+    )
+      return;
     if (
       await run(() => repos.profile.deleteLanguage(language.id), 'Gelöscht')
     ) {
@@ -475,6 +502,7 @@ export function LinkDialog({
   onClose: () => void;
   onSaved?: () => void;
 }) {
+  const confirm = useConfirm();
   const { repos } = useApp();
   const run = useAction();
   const [values, setValues] = useState<LinkFormValues>({
@@ -504,7 +532,15 @@ export function LinkDialog({
   }
 
   async function remove() {
-    if (!link || !confirm(`Link „${linkText(link)}“ löschen?`)) return;
+    if (
+      !link ||
+      !(await confirm({
+        title: `Link „${linkText(link)}“ löschen?`,
+        confirmLabel: 'Löschen',
+        danger: true,
+      }))
+    )
+      return;
     if (await run(() => repos.profile.deleteLink(link.id), 'Gelöscht')) {
       onSaved?.();
       onClose();

@@ -23,7 +23,7 @@ import { SettingsPage } from './pages/settings';
 import { WelcomePage } from './pages/welcome';
 import '../theme/jobpilot.css';
 import './styles.css';
-import { ToastProvider } from './ui';
+import { ConfirmProvider, ToastProvider } from './ui';
 import { loadTheme } from './theme';
 
 // Gewählte Darstellung anwenden, bevor die App gezeichnet wird
@@ -86,7 +86,9 @@ createRoot(root).render(
     <HashRouter>
       <AppProvider>
         <ToastProvider>
-          <App />
+          <ConfirmProvider>
+            <App />
+          </ConfirmProvider>
         </ToastProvider>
       </AppProvider>
     </HashRouter>

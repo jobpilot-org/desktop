@@ -30,7 +30,7 @@ import type { Repositories } from '@/data';
 import { CoverLetterError } from '@/data/cover-letters';
 
 import { errorMessage, useApp, useData } from '../app-context';
-import { Field, LoadError, useToast } from '../ui';
+import { Field, LoadError, useToast, useConfirm } from '../ui';
 import { useProfile } from './profile';
 
 const CONSENT_TEXT =
@@ -153,6 +153,7 @@ function LetterWizard({
   loaded: Loaded;
   profile: Profile;
 }) {
+  const confirm = useConfirm();
   const { repos, notifyChange } = useApp();
   const navigate = useNavigate();
   const toast = useToast();
@@ -202,7 +203,14 @@ function LetterWizard({
   /** Zustimmung zur KI-Nutzung einmalig einholen (wie KI-Check und Passung) */
   async function consent() {
     if ((await repos.settings.get('ai.consent')) === 'yes') return true;
-    if (!confirm(`${CONSENT_TEXT}\n\nEinverstanden?`)) return false;
+    if (
+      !(await confirm({
+        title: 'KI nutzen?',
+        message: CONSENT_TEXT,
+        confirmLabel: 'Einverstanden',
+      }))
+    )
+      return false;
     await repos.settings.set('ai.consent', 'yes');
     return true;
   }
@@ -220,7 +228,12 @@ function LetterWizard({
   async function draft(nextStep = 2) {
     if (
       hasContent(letter) &&
-      !confirm('Der neue Vorschlag ersetzt alle Abschnitte. Fortfahren?')
+      !(await confirm({
+        title: 'Anschreiben neu erstellen?',
+        message:
+          'Der neue Vorschlag ersetzt alle Abschnitte – auch deine eigenen Änderungen.',
+        confirmLabel: 'Neu erstellen',
+      }))
     )
       return;
     if (!(await consent())) return;
@@ -274,9 +287,13 @@ function LetterWizard({
   /** Bisheriges Anschreiben verwerfen und mit frischen Vorschlägen von vorn beginnen */
   async function restart() {
     if (
-      !confirm(
-        'Neu beginnen? Ansprache, Ton, Stärken und alle Abschnitte werden verworfen.',
-      )
+      !(await confirm({
+        title: 'Neu beginnen?',
+        message:
+          'Ansprache, Ton, Stärken und alle Abschnitte werden verworfen, der Assistent startet bei Schritt 1.',
+        confirmLabel: 'Neu beginnen',
+        danger: true,
+      }))
     )
       return;
     const fresh = emptyLetter(loaded.target, posting);

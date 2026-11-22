@@ -696,6 +696,20 @@ a.stat:hover {
   font-weight: 400;
 }
 
+.dialog--confirm {
+  width: min(440px, 90vw);
+}
+
+.dialog--confirm h2 {
+  margin-bottom: 10px;
+}
+
+.confirm-message {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .dialog-buttons {
   grid-column: 1 / -1;
   display: flex;

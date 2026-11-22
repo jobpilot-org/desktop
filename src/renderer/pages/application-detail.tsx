@@ -34,6 +34,7 @@ import {
   Section,
   StatusBadge,
   useAction,
+  useConfirm,
 } from '../ui';
 
 type OpenDialog =
@@ -42,6 +43,7 @@ type OpenDialog =
   | { kind: 'reminder' };
 
 export function ApplicationDetailPage() {
+  const confirm = useConfirm();
   const { id = '' } = useParams();
   const { repos } = useApp();
   const navigate = useNavigate();
@@ -364,10 +366,16 @@ export function ApplicationDetailPage() {
                 <TimelineEntry
                   key={`${item.kind}-${item.at}-${'note' in item ? item.note.id : ''}`}
                   item={item}
-                  onDeleteNote={(noteId) =>
-                    confirm('Notiz löschen?') &&
-                    run(() => repos.details.deleteNote(noteId))
-                  }
+                  onDeleteNote={async (noteId) => {
+                    if (
+                      await confirm({
+                        title: 'Notiz löschen?',
+                        confirmLabel: 'Löschen',
+                        danger: true,
+                      })
+                    )
+                      await run(() => repos.details.deleteNote(noteId));
+                  }}
                 />
               ))}
             </ol>

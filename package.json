@@ -1,7 +1,7 @@
 {
   "name": "jobpilot-desktop",
   "productName": "JobPilot",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "private": true,
   "description": "JobPilot für den Desktop – Bewerbungen verwalten, mit Supabase als zentraler Datenbank",
   "keywords": [],

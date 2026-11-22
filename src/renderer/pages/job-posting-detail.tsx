@@ -19,10 +19,18 @@ import { CoverLetterSection } from '../components/cover-letter';
 import { FitRing, FitSection } from '../components/job-fit';
 import { useDeletePosting } from '../delete-actions';
 import { useProfile } from './profile';
-import { Empty, formatDate, LoadError, Section, useAction } from '../ui';
+import {
+  Empty,
+  formatDate,
+  LoadError,
+  Section,
+  useAction,
+  useConfirm,
+} from '../ui';
 
 /** Ein Stellenangebot: Eckdaten, Anzeige, Ansprechpartner – und daraus eine Bewerbung machen */
 export function JobPostingDetailPage() {
+  const confirm = useConfirm();
   const { id = '' } = useParams();
   const { repos } = useApp();
   const navigate = useNavigate();
@@ -303,13 +311,19 @@ export function JobPostingDetailPage() {
                       <button
                         type="button"
                         className="link"
-                        onClick={() =>
-                          confirm('Diese Quelle entfernen?') &&
-                          void run(
-                            () => repos.jobPostings.removeSource(source.id),
-                            'Quelle entfernt',
+                        onClick={async () => {
+                          if (
+                            await confirm({
+                              title: 'Diese Quelle entfernen?',
+                              confirmLabel: 'Entfernen',
+                              danger: true,
+                            })
                           )
-                        }
+                            await run(
+                              () => repos.jobPostings.removeSource(source.id),
+                              'Quelle entfernt',
+                            );
+                        }}
                       >
                         Entfernen
                       </button>

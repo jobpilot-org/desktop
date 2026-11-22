@@ -20,7 +20,7 @@ import {
 import { ProfileReviewError, reviewProfile } from '@/data/profile-review';
 
 import { useApp, useData } from '../app-context';
-import { Empty, LoadError, Section, useAction } from '../ui';
+import { Empty, LoadError, Section, useAction, useConfirm } from '../ui';
 import { useProfile, useProfileEditor } from './profile';
 
 const CONSENT_TEXT =
@@ -46,6 +46,7 @@ export function ProfileReviewPage() {
 }
 
 function ProfileReviewContent({ profile }: { profile: Profile }) {
+  const confirm = useConfirm();
   const { supabase, repos } = useApp();
   const navigate = useNavigate();
   const keyState = useData((r) => r.aiKey.status());
@@ -56,7 +57,14 @@ function ProfileReviewContent({ profile }: { profile: Profile }) {
 
   async function start() {
     if ((await repos.settings.get('ai.consent')) !== 'yes') {
-      if (!confirm(`${CONSENT_TEXT}\n\nEinverstanden?`)) return;
+      if (
+        !(await confirm({
+          title: 'KI nutzen?',
+          message: CONSENT_TEXT,
+          confirmLabel: 'Einverstanden',
+        }))
+      )
+        return;
       await repos.settings.set('ai.consent', 'yes');
     }
     setStep({ kind: 'running' });

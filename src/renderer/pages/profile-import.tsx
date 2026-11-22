@@ -19,7 +19,7 @@ import {
   SkillsSection,
   SummarySection,
 } from '../components/profile-sections';
-import { useAction } from '../ui';
+import { useAction, useConfirm } from '../ui';
 import { useProfile } from './profile';
 
 const CONSENT_TEXT =
@@ -32,6 +32,7 @@ type Step =
 
 /** Lebenslauf als PDF wählen → KI liest ihn aus → Vorschau → übernehmen */
 export function ProfileImportPage() {
+  const confirm = useConfirm();
   const { supabase, repos } = useApp();
   const navigate = useNavigate();
   const run = useAction();
@@ -54,7 +55,14 @@ export function ProfileImportPage() {
       return;
     }
     if ((await repos.settings.get('ai.consent')) !== 'yes') {
-      if (!confirm(`${CONSENT_TEXT}\n\nEinverstanden?`)) return;
+      if (
+        !(await confirm({
+          title: 'KI nutzen?',
+          message: CONSENT_TEXT,
+          confirmLabel: 'Einverstanden',
+        }))
+      )
+        return;
       await repos.settings.set('ai.consent', 'yes');
     }
     setStep({ kind: 'reading', fileName: file.name });

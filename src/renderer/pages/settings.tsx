@@ -15,12 +15,20 @@ import {
   THEMES,
   type Theme,
 } from '../theme';
-import { Field, LoadError, Section, useAction, useToast } from '../ui';
+import {
+  Field,
+  LoadError,
+  Section,
+  useAction,
+  useToast,
+  useConfirm,
+} from '../ui';
 
 const FIT_CONSENT =
   'Für die Passung werden dein Profil – ohne Name, Anschrift, Telefon, E-Mail und Geburtsdaten – und der Anzeigentext an den jobpilot-Server gesendet und von dort mit deinem eigenen KI-Key an den KI-Anbieter (Anthropic) weitergeleitet.';
 
 export function SettingsPage() {
+  const confirm = useConfirm();
   const { repos, supabase, session } = useApp();
   const run = useAction();
   const toast = useToast();
@@ -29,7 +37,14 @@ export function SettingsPage() {
 
   async function toggleFitAuto(enabled: boolean) {
     if (enabled && (await repos.settings.get('ai.consent')) !== 'yes') {
-      if (!confirm(`${FIT_CONSENT}\n\nEinverstanden?`)) return;
+      if (
+        !(await confirm({
+          title: 'KI nutzen?',
+          message: FIT_CONSENT,
+          confirmLabel: 'Einverstanden',
+        }))
+      )
+        return;
       await run(() => repos.settings.set('ai.consent', 'yes'));
     }
     await run(
