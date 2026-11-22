@@ -1900,7 +1900,7 @@ a.stat:hover {
 
 .style-bar__fields {
   display: grid;
-  grid-template-columns: auto minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 2.4fr) minmax(0, 1.3fr) minmax(0, 1fr);
   gap: 0 12px;
   align-items: end;
 }
@@ -1913,6 +1913,12 @@ a.stat:hover {
   margin: 0 -18px;
   padding: 12px 18px;
   border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.style-bar__notice[data-changed] {
   background: var(--jp-accent-soft);
   color: var(--jp-accent-soft-text);
+  font-size: inherit;
 }

@@ -427,6 +427,7 @@ export function toCoverLetter(row: CoverLetterRow): CoverLetter {
         : [],
     ),
     closing: row.closing,
+    draftedStyle: row.drafted_style ?? undefined,
     updatedAt: toIsoTimestamp(row.updated_at),
   };
 }
@@ -443,6 +444,7 @@ export function toCoverLetterColumns(input: CoverLetterInput) {
     subject: input.subject.trim(),
     sections: input.sections.map((s) => ({ key: s.key, text: s.text.trim() })),
     closing: input.closing.trim(),
+    drafted_style: input.draftedStyle ?? null,
   };
 }
 

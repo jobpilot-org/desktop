@@ -98,6 +98,8 @@ export type CoverLetter = {
   subject: string;
   sections: LetterSection[];
   closing: string;
+  /** Auswahl, mit der der Text geschrieben wurde („du|bold|medium“), siehe `draftedStyle()` */
+  draftedStyle?: string;
   updatedAt: string;
 };
 
@@ -171,6 +173,16 @@ export function suggestedStrengths(posting: Pick<LetterPosting, 'fit'>): string[
     result.push(item.trim());
   }
   return result.slice(0, 8);
+}
+
+/**
+ * Was den Text prägt: Du/Sie, Ton, Länge. Weicht sie von `draftedStyle` ab, passt der Text nicht
+ * mehr zur Auswahl; die Anrede selbst greift ohne Neu-Erstellen.
+ */
+export function draftedStyle(
+  letter: Pick<CoverLetter, 'address' | 'tone' | 'length'>,
+) {
+  return `${letter.address}|${letter.tone}|${letter.length}`;
 }
 
 /** Abschnitte in fester Reihenfolge; fehlende leer */

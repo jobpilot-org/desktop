@@ -188,6 +188,7 @@ export type Database = {
           application_id: string | null;
           closing: string;
           created_at: string;
+          drafted_style: string | null;
           id: string;
           length: string;
           model: string | null;
@@ -206,6 +207,7 @@ export type Database = {
           application_id?: string | null;
           closing?: string;
           created_at?: string;
+          drafted_style?: string | null;
           id?: string;
           length?: string;
           model?: string | null;
@@ -223,6 +225,7 @@ export type Database = {
           application_id?: string | null;
           closing?: string;
           created_at?: string;
+          drafted_style?: string | null;
           id?: string;
           length?: string;
           model?: string | null;

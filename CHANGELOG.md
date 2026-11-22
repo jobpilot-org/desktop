@@ -4,6 +4,12 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.12.2 – 2026-11-22
+
+- Anschreiben: „Neu erstellen“ ist über Abschnitten und Vorschau immer da. Der Hinweis „Auswahl
+  geändert“ erscheint jetzt auch nach dem erneuten Öffnen, weil gespeichert wird, mit welcher
+  Auswahl der Text geschrieben wurde (vorher verschwand der Knopf).
+
 ## 0.12.1 – 2026-11-22
 
 - Rückfragen (Löschen, KI-Zustimmung, Anschreiben neu erstellen bzw. neu beginnen) erscheinen im

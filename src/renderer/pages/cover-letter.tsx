@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 
 import {
   detectAddress,
+  draftedStyle,
   emptyLetter,
   LETTER_ADDRESS_LABELS,
   LETTER_ADDRESSES,
@@ -171,9 +172,10 @@ function LetterWizard({
   const [missingKey, setMissingKey] = useState(false);
   const [model, setModel] = useState<string>();
   // Auswahl, mit der der jetzige Text geschrieben wurde – weicht sie ab, Neu-Erstellen anbieten
-  const [writtenWith, setWrittenWith] = useState(() =>
-    styleKey(loaded.letter?.input),
-  );
+  const changed =
+    hasContent(letter) &&
+    letter.draftedStyle !== undefined &&
+    letter.draftedStyle !== draftedStyle(letter);
 
   const profileEmpty =
     !profile.summary?.trim() &&
@@ -245,10 +247,10 @@ function LetterWizard({
         ...letter,
         subject: result.subject || letter.subject,
         sections: result.sections,
+        draftedStyle: draftedStyle(letter),
       };
       setLetter(next);
       setModel(result.model);
-      setWrittenWith(styleKey(next));
       if (await save(next, result.model)) setStep(nextStep);
     } catch (e) {
       showError(e);
@@ -299,7 +301,6 @@ function LetterWizard({
     const fresh = emptyLetter(loaded.target, posting);
     setLetter(fresh);
     setModel(undefined);
-    setWrittenWith(undefined);
     setError(undefined);
     if (await save(fresh, undefined)) {
       setStep(0);
@@ -356,9 +357,7 @@ function LetterWizard({
           posting={posting}
           letter={letter}
           onChange={update}
-          changed={
-            writtenWith !== undefined && styleKey(letter) !== writtenWith
-          }
+          changed={changed}
           busy={busy === 'draft'}
           disabled={Boolean(busy)}
           onRegenerate={() => void draft(step)}
@@ -864,14 +863,6 @@ function LetterPaper({
   );
 }
 
-/** Was den Text prägt: Du/Sie, Ton, Länge – die Anrede selbst greift ohne Neu-Erstellen */
-function styleKey(
-  letter?: Pick<CoverLetterInput, 'address' | 'tone' | 'length' | 'sections'>,
-) {
-  if (!letter || !hasContent(letter)) return undefined;
-  return `${letter.address}|${letter.tone}|${letter.length}`;
-}
-
 /**
  * Auswahl über Abschnitten und Vorschau: Du/Sie, Anrede, Ton und Länge nachträglich ändern. Die
  * Anrede gilt sofort; bei Du/Sie, Ton oder Länge bietet sie an, das Anschreiben neu zu erstellen.
@@ -964,23 +955,26 @@ function StyleBar({
           </select>
         </Field>
       </div>
-      {(changed || busy) && (
-        <div className="style-bar__notice">
-          <span>
-            {busy
-              ? 'Anschreiben wird mit der neuen Auswahl geschrieben …'
-              : 'Auswahl geändert – der Text passt noch zur alten.'}
-          </span>
-          <button
-            type="button"
-            className="primary"
-            disabled={disabled}
-            onClick={onRegenerate}
-          >
-            Mit neuer Auswahl neu erstellen
-          </button>
-        </div>
-      )}
+      <div
+        className="style-bar__notice"
+        data-changed={changed || busy || undefined}
+      >
+        <span>
+          {busy
+            ? 'Anschreiben wird mit der neuen Auswahl geschrieben …'
+            : changed
+              ? 'Auswahl geändert – der Text passt noch zur alten.'
+              : 'Du/Sie, Ton oder Länge ändern und das Anschreiben damit neu schreiben lassen.'}
+        </span>
+        <button
+          type="button"
+          className={changed ? 'primary' : undefined}
+          disabled={disabled}
+          onClick={onRegenerate}
+        >
+          {changed ? 'Mit neuer Auswahl neu erstellen' : 'Neu erstellen'}
+        </button>
+      </div>
     </div>
   );
 }
