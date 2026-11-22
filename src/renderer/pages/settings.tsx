@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { FOLLOW_UP_OPTIONS, type ReminderSettings } from '@/domain/reminders';
 
@@ -8,6 +8,13 @@ import {
   notificationsEnabled,
   setNotificationsEnabled,
 } from '../notifications';
+import {
+  loadTheme,
+  setTheme,
+  THEME_LABELS,
+  THEMES,
+  type Theme,
+} from '../theme';
 import { Field, LoadError, Section, useAction, useToast } from '../ui';
 
 export function SettingsPage() {
@@ -15,6 +22,16 @@ export function SettingsPage() {
   const run = useAction();
   const toast = useToast();
   const state = useData((r) => r.reminders.settings());
+  const [theme, setThemeState] = useState<Theme>();
+  useEffect(() => {
+    void loadTheme().then(setThemeState);
+  }, []);
+
+  async function changeTheme(next: Theme) {
+    setThemeState(next);
+    await setTheme(next);
+  }
+
   const [notify, setNotify] = useState(
     () => notificationsEnabled() && Notification.permission === 'granted',
   );
@@ -93,6 +110,29 @@ export function SettingsPage() {
             </p>
           </div>
         )}
+      </Section>
+
+      <Section title="Darstellung">
+        <div
+          className="segmented theme-choice"
+          role="group"
+          aria-label="Hell oder dunkel"
+        >
+          {THEMES.map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={theme === option}
+              onClick={() => void changeTheme(option)}
+            >
+              {THEME_LABELS[option]}
+            </button>
+          ))}
+        </div>
+        <p className="muted">
+          „System“ folgt der Einstellung deines Rechners. Gilt nur für diesen
+          Rechner.
+        </p>
       </Section>
 
       <Section title="Desktop-Benachrichtigungen">

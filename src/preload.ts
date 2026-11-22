@@ -5,4 +5,6 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('desktop', {
   platform: process.platform,
   focusWindow: () => ipcRenderer.send('window:focus'),
+  getTheme: () => ipcRenderer.invoke('theme:get'),
+  setTheme: (theme: string) => ipcRenderer.invoke('theme:set', theme),
 });

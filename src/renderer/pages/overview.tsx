@@ -9,6 +9,7 @@ import {
   APPOINTMENT_KIND_LABELS,
   formatAppointmentTime,
 } from '@/domain/details';
+import { postingState } from '@/domain/job-postings';
 import { dueToday } from '@/domain/reminders';
 
 import { useData } from '../app-context';
@@ -20,22 +21,30 @@ const DAY = 24 * 60 * 60 * 1000;
 export function OverviewPage() {
   const state = useData(async (repos) => {
     const now = new Date();
-    const [applications, reminders, appointments] = await Promise.all([
-      repos.applications.listActive(),
-      repos.reminders.open(),
-      repos.details.upcomingAppointments(
-        now,
-        new Date(now.getTime() + 14 * DAY),
-      ),
-    ]);
-    return { applications, reminders, appointments };
+    const [applications, reminders, appointments, postings] = await Promise.all(
+      [
+        repos.applications.listActive(),
+        repos.reminders.open(),
+        repos.details.upcomingAppointments(
+          now,
+          new Date(now.getTime() + 14 * DAY),
+        ),
+        repos.jobPostings.list(),
+      ],
+    );
+    return { applications, reminders, appointments, postings };
   });
 
   if (state.status === 'error' && !state.data)
     return <LoadError error={state.error} />;
   if (!state.data) return null;
-  const { applications, reminders, appointments } = state.data;
+  const { applications, reminders, appointments, postings } = state.data;
   const counts = countByFilter(applications);
+  const activeIds = new Set(applications.map((a) => a.id));
+  // Neueste zuerst (so liefert sie das Repository)
+  const openPostings = postings.filter(
+    (posting) => postingState(posting, activeIds) === 'open',
+  );
   const due = dueToday(reminders);
 
   return (
@@ -55,6 +64,10 @@ export function OverviewPage() {
       </h1>
 
       <div className="stats">
+        <Link to="/stellen" className="stat stat-postings">
+          <span className="stat-value">{openPostings.length}</span>
+          <span className="stat-label">Stellenangebote</span>
+        </Link>
         {STATUS_FILTERS.filter((filter) => filter !== 'all').map((filter) => (
           <Link
             key={filter}
@@ -99,6 +112,37 @@ export function OverviewPage() {
           )}
         </Section>
       </div>
+
+      <Section
+        title="Neue Stellenangebote"
+        action={
+          openPostings.length > 0 && <Link to="/stellen">Alle anzeigen</Link>
+        }
+      >
+        {openPostings.length ? (
+          <ul className="rows">
+            {openPostings.slice(0, 5).map((posting) => (
+              <li key={posting.id} className="row">
+                <div className="row-main">
+                  <Link to={`/stellen/${posting.id}`}>
+                    <strong>{posting.company}</strong>
+                  </Link>
+                  <span className="muted">
+                    {[posting.role, posting.location, posting.source]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Empty>
+            Keine offenen Stellenangebote. Mit der jobpilot-Extension merkst du
+            dir Anzeigen direkt im Browser.
+          </Empty>
+        )}
+      </Section>
 
       {applications.length === 0 && (
         <Section title="Los geht’s">

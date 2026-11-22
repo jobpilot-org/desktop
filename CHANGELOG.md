@@ -4,6 +4,13 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.4.0 – 2026-11-22
+
+- Übersicht: neue erste Kachel „Stellenangebote“ (offene Angebote) und Abschnitt „Neue
+  Stellenangebote“ mit den fünf neuesten offenen Angeboten.
+- Einstellungen → „Darstellung“: System, Hell oder Dunkel – gilt für diesen Rechner, auch für
+  Fensterrahmen und Menüs.
+
 ## 0.3.0 – 2026-11-22
 
 - Neuer Menüpunkt **„Stellenangebote“**: gemerkte Anzeigen (z. B. aus der Browser-Extension) sind

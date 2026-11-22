@@ -1411,3 +1411,24 @@ a.stat:hover {
 .posting-actions {
   margin: 4px 0 8px;
 }
+
+/* --- Hell/Dunkel (theme.ts): feste Wahl statt System; die Farben aus jobpilot.css folgen color-scheme --- */
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Stellenangebote auf der Übersicht: erste Kachel, als Vorstufe der Bewerbungen hervorgehoben */
+.stat-postings {
+  background: var(--jp-accent-soft);
+  color: var(--jp-accent-soft-text);
+}
+
+/* Auswahl System/Hell/Dunkel in den Einstellungen nur so breit wie nötig */
+.theme-choice {
+  width: fit-content;
+}

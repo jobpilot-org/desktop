@@ -23,6 +23,10 @@ import { WelcomePage } from './pages/welcome';
 import '../theme/jobpilot.css';
 import './styles.css';
 import { ToastProvider } from './ui';
+import { loadTheme } from './theme';
+
+// Gewählte Darstellung anwenden, bevor die App gezeichnet wird
+void loadTheme();
 
 // HashRouter, weil die gebaute App per file:// geladen wird – dort gibt es keinen Server,
 // der unbekannte Pfade auf index.html umleitet.
