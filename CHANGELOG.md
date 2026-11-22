@@ -4,6 +4,15 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.6.0 – 2026-11-22
+
+- **Passung** für Stellenangebote: Die KI vergleicht dein Profil mit der Anzeige – Score 0–100,
+  was dafür und dagegen spricht, eine Prognose deiner Aussichten und was du betonen solltest.
+  Score als Abzeichen in der Übersicht und der Stellenangebotsliste, ausführlich im Detail.
+- Ändert sich dein Profil oder die Anzeige, erscheint die Bewertung als „veraltet“; „Neu
+  bewerten“ rechnet sie neu.
+- Einstellungen → KI: neue Stellenangebote automatisch bewerten oder nur auf Knopfdruck.
+
 ## 0.5.0 – 2026-11-22
 
 - Löschen direkt am Datensatz: Papierkorb in jeder Zeile der Bewerbungsliste, auf jeder Karte im
