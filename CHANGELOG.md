@@ -4,6 +4,12 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.11.0 – 2026-11-22
+
+- Anschreiben: „Neu beginnen“ verwirft ein vorhandenes Anschreiben und startet den Assistenten
+  von vorn.
+- Vorschau wie ein Brief: Ort und Datum rechtsbündig, Betreff fett.
+
 ## 0.10.0 – 2026-11-22
 
 - Anschreiben: Du oder Sie wählbar – vorgeschlagen wird, wie die Stellenanzeige selbst anspricht;

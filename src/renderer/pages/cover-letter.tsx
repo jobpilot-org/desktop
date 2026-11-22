@@ -12,6 +12,7 @@ import {
   LETTER_TONE_HINTS,
   LETTER_TONE_LABELS,
   LETTER_TONES,
+  letterParts,
   letterText,
   salutationOptions,
   SECTION_HINTS,
@@ -262,6 +263,25 @@ function LetterWizard({
     }
   }
 
+  /** Bisheriges Anschreiben verwerfen und mit frischen Vorschlägen von vorn beginnen */
+  async function restart() {
+    if (
+      !confirm(
+        'Neu beginnen? Ansprache, Ton, Stärken und alle Abschnitte werden verworfen.',
+      )
+    )
+      return;
+    const fresh = emptyLetter(loaded.target, posting);
+    setLetter(fresh);
+    setModel(undefined);
+    setError(undefined);
+    if (await save(fresh, undefined)) {
+      setStep(0);
+      window.scrollTo({ top: 0 });
+      toast({ text: 'Anschreiben zurückgesetzt' });
+    }
+  }
+
   const { title, intro } = STEPS[step]!;
 
   return (
@@ -404,6 +424,16 @@ function LetterWizard({
               Fertig
             </button>
           </>
+        )}
+        {hasContent(letter) && (
+          <button
+            type="button"
+            className="wizard-buttons__end danger"
+            disabled={Boolean(busy)}
+            onClick={() => void restart()}
+          >
+            Neu beginnen
+          </button>
         )}
       </div>
     </div>
@@ -756,9 +786,41 @@ function Preview({
           <Link to="/profil">im Profil ergänzen</Link>.
         </p>
       )}
-      <article className="letter-paper">
-        {letterText(letter, profile, posting)}
-      </article>
+      <LetterPaper letter={letter} profile={profile} posting={posting} />
     </>
+  );
+}
+
+/** Der Brief wie auf Papier: Absender, Empfänger, Datum rechtsbündig, Betreff fett */
+function LetterPaper({
+  letter,
+  profile,
+  posting,
+}: {
+  letter: CoverLetterInput;
+  profile: Profile;
+  posting: LetterPosting;
+}) {
+  const parts = letterParts(letter, profile, posting);
+  return (
+    <article className="letter-paper">
+      {parts.sender.length > 0 && (
+        <p className="letter-paper__sender">{parts.sender.join('\n')}</p>
+      )}
+      {parts.recipient.length > 0 && <p>{parts.recipient.join('\n')}</p>}
+      <p className="letter-paper__date">{parts.date}</p>
+      {parts.subject && (
+        <p className="letter-paper__subject">{parts.subject}</p>
+      )}
+      {parts.salutation && <p>{parts.salutation}</p>}
+      {parts.body.map((paragraph, index) => (
+        <p key={index}>{paragraph}</p>
+      ))}
+      <p>
+        {parts.closing}
+        {'\n\n'}
+        {parts.name}
+      </p>
+    </article>
   );
 }

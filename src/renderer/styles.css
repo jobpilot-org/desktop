@@ -1839,6 +1839,26 @@ a.stat:hover {
   white-space: pre-wrap;
 }
 
+.letter-paper p {
+  margin: 0 0 1em;
+}
+
+.letter-paper .letter-paper__sender {
+  margin-bottom: 2em;
+}
+
+.letter-paper__date {
+  text-align: right;
+}
+
+.letter-paper__subject {
+  font-weight: 700;
+}
+
+.wizard-buttons__end {
+  margin-left: auto;
+}
+
 .letter-summary {
   display: flex;
   flex-direction: column;

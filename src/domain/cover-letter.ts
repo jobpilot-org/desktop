@@ -274,6 +274,34 @@ export function letterDate(date: Date) {
   return new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }
 
+/** Die Teile des Briefs – für die Vorschau (Datum rechtsbündig) und den Text zum Kopieren */
+export function letterParts(
+  letter: Pick<CoverLetter, 'salutation' | 'subject' | 'sections' | 'closing'>,
+  profile: Profile,
+  posting: Pick<LetterPosting, 'company' | 'contactName'>,
+  date = new Date(),
+) {
+  const name = `${profile.firstName} ${profile.lastName}`.trim();
+  const lines = (values: (string | undefined)[]) =>
+    values.filter((line): line is string => Boolean(line && line.trim()));
+  return {
+    sender: lines([
+      name,
+      profile.street,
+      [profile.postalCode, profile.city].filter(Boolean).join(' '),
+      profile.phone,
+      profile.email,
+    ]),
+    recipient: lines([posting.company, posting.contactName]),
+    date: `${profile.city ? `${profile.city}, ` : ''}${letterDate(date)}`,
+    subject: letter.subject.trim(),
+    salutation: letter.salutation.trim(),
+    body: letter.sections.map((s) => s.text.trim()).filter(Boolean),
+    closing: letter.closing.trim(),
+    name,
+  };
+}
+
 /**
  * Das ganze Anschreiben als Text: Absender aus dem Profil, Empfänger, Ort und Datum, Betreff,
  * Anrede, Abschnitte, Gruß und Name – zum Kopieren in ein Dokument oder eine E-Mail.
@@ -284,24 +312,14 @@ export function letterText(
   posting: Pick<LetterPosting, 'company' | 'contactName'>,
   date = new Date(),
 ) {
-  const name = `${profile.firstName} ${profile.lastName}`.trim();
-  const sender = [
-    name,
-    profile.street,
-    [profile.postalCode, profile.city].filter(Boolean).join(' '),
-    profile.phone,
-    profile.email,
-  ].filter((line) => line && line.trim());
-  const recipient = [posting.company, posting.contactName].filter((line) => line && line.trim());
-  const place = profile.city ? `${profile.city}, ` : '';
-  const body = letter.sections.map((s) => s.text.trim()).filter(Boolean);
+  const parts = letterParts(letter, profile, posting, date);
   return [
-    sender.join('\n'),
-    recipient.join('\n'),
-    `${place}${letterDate(date)}`,
-    letter.subject.trim(),
-    [letter.salutation.trim(), '', body.join('\n\n')].join('\n'),
-    [letter.closing.trim(), '', name].join('\n'),
+    parts.sender.join('\n'),
+    parts.recipient.join('\n'),
+    parts.date,
+    parts.subject,
+    [parts.salutation, '', parts.body.join('\n\n')].join('\n'),
+    [parts.closing, '', parts.name].join('\n'),
   ]
     .filter((block) => block.trim())
     .join('\n\n');
