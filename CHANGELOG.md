@@ -4,6 +4,16 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.8.0 – 2026-11-22
+
+- Stellenangebote mit **mehreren Quellen** (Jobportal und Firmenseite): Die Angaben der Firmenseite
+  haben Vorrang, Abweichungen bei Position, Firma, Ort und Gehalt werden angezeigt; Quellen lassen
+  sich entfernen.
+- Neuer Abschnitt „Bewerbung & Ansprechpartner“ mit Ansprechperson, Bewerbungs-E-Mail (öffnet das
+  Mailprogramm) und Bewerbungsseite.
+- „Auf Firmenseite suchen ↗“ sucht die Anzeige auf der Website der Firma.
+- E-Mail-Links (mailto) öffnen jetzt das Mailprogramm.
+
 ## 0.7.0 – 2026-11-22
 
 - Profil: **Links** zu LinkedIn, XING, GitHub, GitLab, Website und Sonstigem – Art wird an der

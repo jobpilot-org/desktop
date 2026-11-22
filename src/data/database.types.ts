@@ -233,9 +233,83 @@ export type Database = {
           },
         ];
       };
+      job_posting_sources: {
+        Row: {
+          apply_email: string | null;
+          apply_url: string | null;
+          captured_at: string;
+          company: string | null;
+          contact_email: string | null;
+          contact_name: string | null;
+          id: string;
+          job_description: string | null;
+          kind: string;
+          location: string | null;
+          posting_id: string;
+          role: string | null;
+          salary_max: number | null;
+          salary_min: number | null;
+          source: string | null;
+          url: string | null;
+          user_id: string;
+          work_mode: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          apply_email?: string | null;
+          apply_url?: string | null;
+          captured_at?: string;
+          company?: string | null;
+          contact_email?: string | null;
+          contact_name?: string | null;
+          id?: string;
+          job_description?: string | null;
+          kind: string;
+          location?: string | null;
+          posting_id: string;
+          role?: string | null;
+          salary_max?: number | null;
+          salary_min?: number | null;
+          source?: string | null;
+          url?: string | null;
+          user_id?: string;
+          work_mode?: string | null;
+        };
+        Update: {
+          apply_email?: string | null;
+          apply_url?: string | null;
+          captured_at?: string;
+          company?: string | null;
+          contact_email?: string | null;
+          contact_name?: string | null;
+          id?: string;
+          job_description?: string | null;
+          kind?: string;
+          location?: string | null;
+          posting_id?: string;
+          role?: string | null;
+          salary_max?: number | null;
+          salary_min?: number | null;
+          source?: string | null;
+          url?: string | null;
+          user_id?: string;
+          work_mode?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'job_posting_sources_user_id_posting_id_fkey';
+            columns: ['user_id', 'posting_id'];
+            isOneToOne: false;
+            referencedRelation: 'job_postings';
+            referencedColumns: ['user_id', 'id'];
+          },
+        ];
+      };
       job_postings: {
         Row: {
           application_id: string | null;
+          apply_email: string | null;
+          apply_url: string | null;
           company: string;
           contact_email: string | null;
           contact_name: string | null;
@@ -262,6 +336,8 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           application_id?: string | null;
+          apply_email?: string | null;
+          apply_url?: string | null;
           company: string;
           contact_email?: string | null;
           contact_name?: string | null;
@@ -287,6 +363,8 @@ export type Database = {
         };
         Update: {
           application_id?: string | null;
+          apply_email?: string | null;
+          apply_url?: string | null;
           company?: string;
           contact_email?: string | null;
           contact_name?: string | null;
@@ -654,6 +732,10 @@ export type Database = {
         Returns: undefined;
       };
       get_ai_api_key: { Args: Record<PropertyKey, never>; Returns: string };
+      refresh_job_posting: {
+        Args: { p_posting_id: string; p_user_id: string };
+        Returns: undefined;
+      };
       replace_profile: { Args: { profile: Json }; Returns: undefined };
       save_ai_api_key: {
         Args: { api_key: string };

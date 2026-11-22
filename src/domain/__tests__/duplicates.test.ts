@@ -4,6 +4,7 @@ import {
   findDuplicates,
   normalizeJobUrl,
   roleKey,
+  sameCompany,
   textSimilarity,
 } from '@/domain/duplicates';
 
@@ -105,5 +106,40 @@ describe('findDuplicates', () => {
 
   it('meldet bei leerer Firma keine Treffer über Firma', () => {
     expect(findDuplicates({ company: ' ', role: 'Senior Software & App Engineer' }, [application({})])).toEqual([]);
+  });
+});
+
+describe('Firma auf Portal und Firmenseite', () => {
+  it('erkennt dieselbe Firma auch bei anderer Schreibweise', () => {
+    expect(sameCompany('Simple First', 'Simple First Consulting GmbH')).toBe(true);
+    expect(sameCompany('FLH Media Digital GmbH', 'flh media digital')).toBe(true);
+    expect(sameCompany('Simple First', 'Second First')).toBe(false);
+    expect(sameCompany('AG', 'Acme AG')).toBe(false);
+    expect(sameCompany('', 'Acme')).toBe(false);
+  });
+
+  it('meldet „gleiche Firma, andere Anzeige“ nur auf Wunsch und prüft alle Quell-Adressen', () => {
+    const existing = [
+      {
+        ...application({
+          id: 'p1',
+          company: 'Simple First Consulting GmbH',
+          role: 'Spezialist KI-Automatisierung & Workflows (m/w/d)',
+          jobUrl: 'https://simple-first.de/stellen/ki',
+        }),
+        otherUrls: ['https://de.indeed.com/viewjob?jk=abc'],
+      },
+    ];
+    const company = {
+      company: 'Simple First',
+      role: 'KI- & Digitalisierungsberater - Steuerkanzleien (m/w/d)',
+    };
+    expect(findDuplicates(company, existing)).toEqual([]);
+    expect(findDuplicates(company, existing, undefined, { sameCompany: true })).toMatchObject([
+      { item: { id: 'p1' }, reason: 'company' },
+    ]);
+    expect(
+      findDuplicates({ ...company, jobUrl: 'https://de.indeed.com/?vjk=abc' }, existing),
+    ).toMatchObject([{ reason: 'url' }]);
   });
 });

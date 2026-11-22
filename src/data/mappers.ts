@@ -30,7 +30,11 @@ import type {
   ProfileDocument,
 } from '@/domain/documents';
 import { parseFit, type FitResult } from '@/domain/job-fit';
-import type { JobPosting } from '@/domain/job-postings';
+import type {
+  JobPosting,
+  JobPostingSource,
+  SourceKind,
+} from '@/domain/job-postings';
 import type { Reminder, ReminderKind } from '@/domain/reminders';
 
 import type { Database, Json } from './database.types';
@@ -53,6 +57,7 @@ export type ProfileLanguageRow = Tables['profile_languages']['Row'];
 export type ProfileLinkRow = Tables['profile_links']['Row'];
 export type DocumentRow = Tables['documents']['Row'];
 export type JobPostingRow = Tables['job_postings']['Row'];
+export type JobPostingSourceRow = Tables['job_posting_sources']['Row'];
 
 /**
  * Postgres liefert `timestamptz` als `…+00:00`; die Domain vergleicht ISO-Strings mit `Z`, wie sie
@@ -291,6 +296,8 @@ export function toJobPosting(row: JobPostingRow): JobPosting {
     jobDescription: row.job_description ?? undefined,
     contactName: row.contact_name ?? undefined,
     contactEmail: row.contact_email ?? undefined,
+    applyEmail: row.apply_email ?? undefined,
+    applyUrl: row.apply_url ?? undefined,
     applicationId: row.application_id ?? undefined,
     dismissedAt: optionalTimestamp(row.dismissed_at),
     createdAt: toIsoTimestamp(row.created_at),
@@ -326,6 +333,8 @@ export function toJobPostingColumns(posting: JobPosting) {
     job_description: posting.jobDescription ?? null,
     contact_name: posting.contactName ?? null,
     contact_email: posting.contactEmail ?? null,
+    apply_email: posting.applyEmail ?? null,
+    apply_url: posting.applyUrl ?? null,
     application_id: posting.applicationId ?? null,
     dismissed_at: posting.dismissedAt ?? null,
     created_at: posting.createdAt,
@@ -335,6 +344,52 @@ export function toJobPostingColumns(posting: JobPosting) {
     fit_posting_hash: posting.fitPostingHash ?? null,
     fit_at: posting.fitAt ?? null,
   } satisfies Tables['job_postings']['Insert'];
+}
+
+export function toJobPostingSource(row: JobPostingSourceRow): JobPostingSource {
+  const text = (value: string | null) => value ?? undefined;
+  return {
+    id: row.id,
+    postingId: row.posting_id,
+    kind: row.kind as SourceKind,
+    source: text(row.source),
+    url: text(row.url),
+    company: text(row.company),
+    role: text(row.role),
+    location: text(row.location),
+    workMode: (row.work_mode as WorkMode | null) ?? undefined,
+    salaryMin: row.salary_min ?? undefined,
+    salaryMax: row.salary_max ?? undefined,
+    jobDescription: text(row.job_description),
+    contactName: text(row.contact_name),
+    contactEmail: text(row.contact_email),
+    applyEmail: text(row.apply_email),
+    applyUrl: text(row.apply_url),
+    capturedAt: toIsoTimestamp(row.captured_at),
+  };
+}
+
+/** Alle Spalten einer Quelle – zum Wiederherstellen nach dem Löschen des Stellenangebots */
+export function toJobPostingSourceColumns(source: JobPostingSource) {
+  return {
+    id: source.id,
+    posting_id: source.postingId,
+    kind: source.kind,
+    source: source.source ?? null,
+    url: source.url ?? null,
+    company: source.company ?? null,
+    role: source.role ?? null,
+    location: source.location ?? null,
+    work_mode: source.workMode ?? null,
+    salary_min: source.salaryMin ?? null,
+    salary_max: source.salaryMax ?? null,
+    job_description: source.jobDescription ?? null,
+    contact_name: source.contactName ?? null,
+    contact_email: source.contactEmail ?? null,
+    apply_email: source.applyEmail ?? null,
+    apply_url: source.applyUrl ?? null,
+    captured_at: source.capturedAt,
+  } satisfies Tables['job_posting_sources']['Insert'];
 }
 
 /** Supabase meldet Fehler als Rückgabewert; hier werden sie zu Ausnahmen */

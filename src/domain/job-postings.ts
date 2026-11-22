@@ -1,4 +1,6 @@
 import type { WorkMode } from '@/domain/application';
+import { formatSalary } from '@/domain/application';
+import { companyKey, roleKey, sameCompany } from '@/domain/duplicates';
 import { applicationToForm, type ApplicationFormValues } from '@/domain/forms';
 import type { StoredFit } from '@/domain/job-fit';
 
@@ -21,6 +23,9 @@ export type JobPosting = StoredFit & {
   jobDescription?: string;
   contactName?: string;
   contactEmail?: string;
+  /** Wohin die Bewerbung geht (aus den Quellen, meist der Firmenseite) */
+  applyEmail?: string;
+  applyUrl?: string;
   /** Bewerbung, die aus diesem Stellenangebot entstanden ist */
   applicationId?: string;
   /** Gesetzt = „nicht interessant“ */
@@ -89,4 +94,98 @@ export function postingToApplicationForm(posting: JobPosting, today: string): Ap
     salaryMax: posting.salaryMax,
     jobDescription: posting.jobDescription,
   });
+}
+
+// --- Quellen -----------------------------------------------------------------------------------
+
+export const SOURCE_KINDS = ['portal', 'company'] as const;
+export type SourceKind = (typeof SOURCE_KINDS)[number];
+export const SOURCE_KIND_LABELS: Record<SourceKind, string> = {
+  portal: 'Jobportal',
+  company: 'Firmenseite',
+};
+
+/**
+ * Eine Stelle, wo sie gefunden wurde: auf einem Jobportal oder der Firmenseite. Die Eckdaten des
+ * Stellenangebots leitet die Datenbank aus den Quellen ab – je Feld zuerst die Firmenseite, dann
+ * die neueste Quelle (Trigger in `job_posting_sources`).
+ */
+export type JobPostingSource = {
+  id: string;
+  postingId: string;
+  kind: SourceKind;
+  source?: string;
+  url?: string;
+  company?: string;
+  role?: string;
+  location?: string;
+  workMode?: WorkMode;
+  salaryMin?: number;
+  salaryMax?: number;
+  jobDescription?: string;
+  contactName?: string;
+  contactEmail?: string;
+  applyEmail?: string;
+  applyUrl?: string;
+  capturedAt: string;
+};
+
+export type SourceDifference = {
+  /** „Position“, „Gehalt“, „Ort“, „Firma“ */
+  field: string;
+  values: { source: string; value: string }[];
+};
+
+/** Kurzname einer Quelle für Hinweise: „Indeed“ bzw. „Firmenseite“ */
+export function sourceName(source: Pick<JobPostingSource, 'kind' | 'source'>) {
+  return source.kind === 'company' ? SOURCE_KIND_LABELS.company : (source.source ?? SOURCE_KIND_LABELS.portal);
+}
+
+/**
+ * Was sich zwischen den Quellen unterscheidet – damit der Nutzer sieht, dass z. B. Titel oder
+ * Gehalt auf Portal und Firmenseite nicht übereinstimmen. Leere Angaben zählen nicht als Abweichung.
+ */
+export function sourceDifferences(sources: readonly JobPostingSource[]): SourceDifference[] {
+  if (sources.length < 2) return [];
+  const checks: {
+    field: string;
+    value: (s: JobPostingSource) => string | undefined;
+    key: (v: string) => string;
+    same?: (a: string, b: string) => boolean;
+  }[] = [
+    { field: 'Position', value: (s) => s.role, key: roleKey },
+    // Schreibweisen derselben Firma („Simple First“ / „… Consulting GmbH“) sind keine Abweichung
+    { field: 'Firma', value: (s) => s.company, key: companyKey, same: sameCompany },
+    { field: 'Ort', value: (s) => s.location, key: (v) => v.trim().toLowerCase() },
+    {
+      field: 'Gehalt',
+      value: (s) => formatSalary(s.salaryMin, s.salaryMax) ?? undefined,
+      key: (v) => v,
+    },
+  ];
+  const differences: SourceDifference[] = [];
+  for (const check of checks) {
+    const values = sources.flatMap((s) => {
+      const value = check.value(s)?.trim();
+      return value ? [{ source: sourceName(s), value }] : [];
+    });
+    const differs = check.same
+      ? values.some((v) => !check.same!(v.value, values[0]!.value))
+      : new Set(values.map((v) => check.key(v.value))).size > 1;
+    if (differs) {
+      differences.push({ field: check.field, values });
+    }
+  }
+  return differences;
+}
+
+/**
+ * Websuche nach der Anzeige auf der Firmenseite: Firma (ohne Rechtsform) + „Karriere“ + Position
+ * ohne „(m/w/d)“. Vollautomatisch geht es nicht zuverlässig – jede Karriereseite ist anders.
+ */
+export function companySearchUrl(posting: Pick<JobPosting, 'company' | 'role'>) {
+  const company = posting.company.replace(/\b(gmbh|mbh|ag|se|kg|ug|co\.?|& co\.? kg)\b/gi, '').trim();
+  const role = posting.role.replace(/\((?:[^)]*\/[^)]*|all genders?)\)/gi, '').trim();
+  const query = `"${company}" Karriere ${role}`.replace(/\s+/g, ' ');
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }

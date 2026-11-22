@@ -6,7 +6,13 @@ import {
   STATUS_LABELS,
   WORK_MODE_LABELS,
 } from '@/domain/application';
-import { POSTING_STATE_LABELS, postingState } from '@/domain/job-postings';
+import {
+  companySearchUrl,
+  POSTING_STATE_LABELS,
+  postingState,
+  SOURCE_KIND_LABELS,
+  sourceDifferences,
+} from '@/domain/job-postings';
 
 import { useApp, useData } from '../app-context';
 import { FitSection } from '../components/job-fit';
@@ -25,11 +31,14 @@ export function JobPostingDetailPage() {
 
   const state = useData(
     async (r) => {
-      const posting = await r.jobPostings.get(id);
+      const [posting, sources] = await Promise.all([
+        r.jobPostings.get(id),
+        r.jobPostings.sources(id),
+      ]);
       const application = posting?.applicationId
         ? await r.applications.get(posting.applicationId)
         : undefined;
-      return { posting, application };
+      return { posting, application, sources };
     },
     [id],
   );
@@ -37,7 +46,9 @@ export function JobPostingDetailPage() {
   if (state.status === 'error' && !state.data)
     return <LoadError error={state.error} />;
   if (!state.data) return null;
-  const { posting, application } = state.data;
+  const { posting, application, sources } = state.data;
+  const differences = sourceDifferences(sources);
+  const hasCompanySource = sources.some((s) => s.kind === 'company');
   if (!posting) {
     return (
       <div className="page">
@@ -115,6 +126,15 @@ export function JobPostingDetailPage() {
               Anzeige öffnen ↗
             </button>
           )}
+          {!hasCompanySource && (
+            <button
+              type="button"
+              title="Sucht die Anzeige auf der Firmenseite – dort mit der Extension speichern, dann wird sie als Quelle ergänzt"
+              onClick={() => window.open(companySearchUrl(posting), '_blank')}
+            >
+              Auf Firmenseite suchen ↗
+            </button>
+          )}
           {current === 'dismissed' ? (
             <button
               type="button"
@@ -170,21 +190,134 @@ export function JobPostingDetailPage() {
             </dl>
           </Section>
 
-          {(posting.contactName || posting.contactEmail) && (
-            <Section title="Ansprechpartner">
-              <p>
-                {posting.contactName}
-                {posting.contactEmail && (
+          <Section title="Bewerbung & Ansprechpartner">
+            {posting.contactName ||
+            posting.contactEmail ||
+            posting.applyEmail ||
+            posting.applyUrl ? (
+              <dl className="facts">
+                {posting.contactName && (
                   <>
-                    {posting.contactName && <br />}
-                    <a href={`mailto:${posting.contactEmail}`}>
-                      {posting.contactEmail}
-                    </a>
+                    <dt>Ansprechperson</dt>
+                    <dd>{posting.contactName}</dd>
                   </>
                 )}
+                {posting.contactEmail && (
+                  <>
+                    <dt>E-Mail</dt>
+                    <dd>
+                      <a href={`mailto:${posting.contactEmail}`}>
+                        {posting.contactEmail}
+                      </a>
+                    </dd>
+                  </>
+                )}
+                {posting.applyEmail &&
+                  posting.applyEmail !== posting.contactEmail && (
+                    <>
+                      <dt>Bewerbung an</dt>
+                      <dd>
+                        <a href={`mailto:${posting.applyEmail}`}>
+                          {posting.applyEmail}
+                        </a>
+                      </dd>
+                    </>
+                  )}
+                {posting.applyUrl && (
+                  <>
+                    <dt>Bewerbungsseite</dt>
+                    <dd>
+                      <a
+                        href={posting.applyUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {hostOf(posting.applyUrl)} ↗
+                      </a>
+                    </dd>
+                  </>
+                )}
+              </dl>
+            ) : (
+              <Empty>
+                Kein Ansprechpartner und kein Bewerbungsweg bekannt – oft stehen
+                sie auf der Firmenseite.
+              </Empty>
+            )}
+          </Section>
+
+          <Section title="Quellen">
+            {differences.length > 0 && (
+              <div className="source-differences">
+                <span className="jp-eyebrow">Abweichungen</span>
+                {differences.map((difference) => (
+                  <p key={difference.field}>
+                    <strong>{difference.field}:</strong>{' '}
+                    {difference.values
+                      .map((v) => `${v.value} (${v.source})`)
+                      .join(' · ')}
+                  </p>
+                ))}
+                <p className="muted small">
+                  Angezeigt werden die Angaben der Firmenseite, sonst der
+                  neuesten Quelle.
+                </p>
+              </div>
+            )}
+            {sources.length ? (
+              <ul className="rows">
+                {sources.map((source) => (
+                  <li key={source.id} className="row">
+                    <div className="row-main">
+                      <span>
+                        <span className="source-kind" data-kind={source.kind}>
+                          {SOURCE_KIND_LABELS[source.kind]}
+                        </span>{' '}
+                        {source.url ? (
+                          <a href={source.url} target="_blank" rel="noreferrer">
+                            {source.source ?? hostOf(source.url)}
+                          </a>
+                        ) : (
+                          source.source
+                        )}
+                      </span>
+                      <span className="muted small">
+                        {[
+                          source.role,
+                          `gespeichert am ${formatDate(source.capturedAt.slice(0, 10))}`,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </span>
+                    </div>
+                    {sources.length > 1 && (
+                      <button
+                        type="button"
+                        className="link"
+                        onClick={() =>
+                          confirm('Diese Quelle entfernen?') &&
+                          void run(
+                            () => repos.jobPostings.removeSource(source.id),
+                            'Quelle entfernt',
+                          )
+                        }
+                      >
+                        Entfernen
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Empty>Keine Quellen gespeichert.</Empty>
+            )}
+            {!hasCompanySource && (
+              <p className="muted small">
+                Tipp: Findest du die Anzeige auf der Firmenseite, speichere sie
+                dort mit der Extension – sie wird als Quelle ergänzt.
               </p>
-            </Section>
-          )}
+            )}
+          </Section>
         </div>
 
         <div className="stack">

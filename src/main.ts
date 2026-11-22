@@ -36,9 +36,12 @@ function readTheme(): Theme {
 const windowBackground = () =>
   nativeTheme.shouldUseDarkColors ? '#151a17' : '#f4f6f2';
 
-/** Nur http(s) geht an den Standardbrowser – nie file:, javascript: o. Ä. */
+/**
+ * Nur http(s) geht an den Standardbrowser, mailto: an das Mailprogramm (Bewerbungs-E-Mails) –
+ * nie file:, javascript: o. Ä.
+ */
 function openExternal(url: string) {
-  if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
+  if (/^(https?:\/\/|mailto:)/i.test(url)) void shell.openExternal(url);
 }
 
 const createWindow = () => {

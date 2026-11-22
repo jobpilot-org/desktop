@@ -1636,3 +1636,39 @@ a.stat:hover {
   justify-content: space-between;
   gap: 12px;
 }
+
+/* --- Quellen eines Stellenangebots (job-posting-detail.tsx) --- */
+
+.source-kind {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--jp-status-saved-bg);
+  color: var(--jp-status-saved-text);
+}
+
+.source-kind[data-kind='company'] {
+  background: var(--jp-status-interview-bg);
+  color: var(--jp-status-interview-text);
+}
+
+.source-differences {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--jp-status-offer-bg);
+  color: var(--jp-status-offer-text);
+}
+
+.source-differences p {
+  margin: 0;
+}
+
+.source-differences .jp-eyebrow {
+  color: inherit;
+}

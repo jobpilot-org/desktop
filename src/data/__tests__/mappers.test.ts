@@ -155,6 +155,8 @@ describe('toJobPosting', () => {
         job_description: null,
         contact_name: 'Frau Muster',
         contact_email: null,
+        apply_email: null,
+        apply_url: null,
         application_id: null,
         dismissed_at: '2026-11-22T09:00:00+00:00',
         created_at: '2026-11-22T08:00:00+00:00',
@@ -179,6 +181,8 @@ describe('toJobPosting', () => {
       jobDescription: undefined,
       contactName: 'Frau Muster',
       contactEmail: undefined,
+      applyEmail: undefined,
+      applyUrl: undefined,
       applicationId: undefined,
       dismissedAt: '2026-11-22T09:00:00.000Z',
       createdAt: '2026-11-22T08:00:00.000Z',
@@ -230,6 +234,8 @@ describe('toJobPostingColumns', () => {
       salaryMax: undefined,
       jobDescription: undefined,
       contactEmail: undefined,
+      applyEmail: undefined,
+      applyUrl: undefined,
       dismissedAt: undefined,
     });
   });

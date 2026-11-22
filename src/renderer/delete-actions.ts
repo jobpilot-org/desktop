@@ -33,12 +33,14 @@ export function useDeletePosting() {
   const run = useAction();
   const toast = useToast();
   return async (posting: JobPosting) => {
+    // Quellen gehen mit dem Stellenangebot weg – für „Rückgängig“ vorher merken
+    const sources = await repos.jobPostings.sources(posting.id).catch(() => []);
     if (!(await run(() => repos.jobPostings.remove(posting.id)))) return false;
     toast({
       text: `Stellenangebot ${posting.company} gelöscht`,
       action: {
         label: 'Rückgängig',
-        run: () => void run(() => repos.jobPostings.restore(posting)),
+        run: () => void run(() => repos.jobPostings.restore(posting, sources)),
       },
     });
     return true;

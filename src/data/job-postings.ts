@@ -1,9 +1,11 @@
 import type { FitResult } from '@/domain/job-fit';
-import type { JobPosting } from '@/domain/job-postings';
+import type { JobPosting, JobPostingSource } from '@/domain/job-postings';
 
 import {
   toJobPosting,
   toJobPostingColumns,
+  toJobPostingSource,
+  toJobPostingSourceColumns,
   unwrap,
   unwrapList,
 } from './mappers';
@@ -99,13 +101,47 @@ export function createJobPostingsRepository(supabase: Supabase) {
       );
     },
 
-    /** „Rückgängig“ nach dem Löschen: legt das Stellenangebot mit derselben id wieder an */
-    async restore(posting: JobPosting) {
+    /** Quellen (Portal, Firmenseite), Firmenseite zuerst, dann die neueste */
+    async sources(postingId: string): Promise<JobPostingSource[]> {
+      const rows = unwrapList(
+        await supabase
+          .from('job_posting_sources')
+          .select('*')
+          .eq('posting_id', postingId)
+          .order('captured_at', { ascending: false }),
+      );
+      return rows
+        .map(toJobPostingSource)
+        .sort(
+          (a, b) => Number(b.kind === 'company') - Number(a.kind === 'company'),
+        );
+    },
+
+    /** Quelle entfernen; die Eckdaten berechnet die Datenbank aus den übrigen neu */
+    async removeSource(id: string) {
+      unwrap(await supabase.from('job_posting_sources').delete().eq('id', id));
+    },
+
+    /**
+     * „Rückgängig“ nach dem Löschen: legt das Stellenangebot mit derselben id und seine Quellen
+     * wieder an (Quellen werden mit dem Stellenangebot gelöscht)
+     */
+    async restore(
+      posting: JobPosting,
+      sources: readonly JobPostingSource[] = [],
+    ) {
       unwrap(
         await supabase
           .from('job_postings')
           .insert(toJobPostingColumns(posting)),
       );
+      if (sources.length) {
+        unwrap(
+          await supabase
+            .from('job_posting_sources')
+            .insert(sources.map(toJobPostingSourceColumns)),
+        );
+      }
     },
   };
 }
