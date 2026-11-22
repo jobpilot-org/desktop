@@ -1,6 +1,11 @@
 import type { JobPosting } from '@/domain/job-postings';
 
-import { toJobPosting, unwrap, unwrapList } from './mappers';
+import {
+  toJobPosting,
+  toJobPostingColumns,
+  unwrap,
+  unwrapList,
+} from './mappers';
 import type { Supabase } from './supabase';
 
 /**
@@ -68,6 +73,15 @@ export function createJobPostingsRepository(supabase: Supabase) {
 
     async remove(id: string) {
       unwrap(await supabase.from('job_postings').delete().eq('id', id));
+    },
+
+    /** „Rückgängig“ nach dem Löschen: legt das Stellenangebot mit derselben id wieder an */
+    async restore(posting: JobPosting) {
+      unwrap(
+        await supabase
+          .from('job_postings')
+          .insert(toJobPostingColumns(posting)),
+      );
     },
   };
 }

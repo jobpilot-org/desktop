@@ -323,6 +323,7 @@ input[type='checkbox'] {
 
 .row-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
@@ -1431,4 +1432,54 @@ a.stat:hover {
 /* Auswahl System/Hell/Dunkel in den Einstellungen nur so breit wie nötig */
 .theme-choice {
   width: fit-content;
+}
+
+/* --- Löschen an Datensätzen (DeleteButton in ui.tsx) --- */
+
+.delete-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.delete-icon:hover,
+.delete-icon:focus-visible {
+  background: var(--jp-background-selected);
+  color: var(--danger);
+}
+
+.row-delete {
+  width: 1%;
+  text-align: right;
+}
+
+.board-card-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.board-card-title .delete-icon {
+  width: 24px;
+  height: 24px;
+  margin: -3px -4px 0 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

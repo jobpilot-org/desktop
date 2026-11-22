@@ -306,6 +306,13 @@ describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
       expect(
         (await repos.jobPostings.findByApplication(applicationId))?.id,
       ).toBe(postingId);
+
+      // Löschen und „Rückgängig“: dasselbe Stellenangebot samt Verknüpfung ist wieder da
+      const before = await repos.jobPostings.get(postingId);
+      await repos.jobPostings.remove(postingId);
+      expect(await repos.jobPostings.get(postingId)).toBeUndefined();
+      await repos.jobPostings.restore(before!);
+      expect(await repos.jobPostings.get(postingId)).toEqual(before);
     } finally {
       await repos.jobPostings.remove(postingId);
       if (applicationId)

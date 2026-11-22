@@ -4,6 +4,7 @@ import {
   toApplicationColumns,
   toDocument,
   toJobPosting,
+  toJobPostingColumns,
   toIsoTimestamp,
   toJobApplication,
   toReminder,
@@ -175,6 +176,38 @@ describe('toJobPosting', () => {
       applicationId: undefined,
       dismissedAt: '2026-11-22T09:00:00.000Z',
       createdAt: '2026-11-22T08:00:00.000Z',
+    });
+  });
+});
+
+describe('toJobPostingColumns', () => {
+  it('ergibt nach dem Zurücklesen wieder dasselbe Stellenangebot', () => {
+    const posting = {
+      id: 'p1',
+      company: 'Acme',
+      role: 'Dev',
+      location: 'Berlin',
+      workMode: 'hybrid' as const,
+      salaryMin: 60000,
+      source: 'Indeed',
+      jobUrl: 'https://a.de/job',
+      contactName: 'Frau Muster',
+      applicationId: 'a1',
+      createdAt: '2026-11-22T08:00:00.000Z',
+    };
+    const columns = toJobPostingColumns(posting);
+    expect(
+      toJobPosting({
+        ...columns,
+        user_id: '11111111-1111-1111-1111-111111111111',
+        updated_at: columns.created_at,
+      }),
+    ).toEqual({
+      ...posting,
+      salaryMax: undefined,
+      jobDescription: undefined,
+      contactEmail: undefined,
+      dismissedAt: undefined,
     });
   });
 });

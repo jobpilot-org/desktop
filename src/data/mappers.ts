@@ -283,6 +283,27 @@ export function toJobPosting(row: JobPostingRow): JobPosting {
   };
 }
 
+/** Alle Spalten eines Stellenangebots – zum Wiederherstellen nach dem Löschen („Rückgängig“) */
+export function toJobPostingColumns(posting: JobPosting) {
+  return {
+    id: posting.id,
+    company: posting.company,
+    role: posting.role,
+    location: posting.location,
+    work_mode: posting.workMode ?? null,
+    salary_min: posting.salaryMin ?? null,
+    salary_max: posting.salaryMax ?? null,
+    source: posting.source ?? null,
+    job_url: posting.jobUrl ?? null,
+    job_description: posting.jobDescription ?? null,
+    contact_name: posting.contactName ?? null,
+    contact_email: posting.contactEmail ?? null,
+    application_id: posting.applicationId ?? null,
+    dismissed_at: posting.dismissedAt ?? null,
+    created_at: posting.createdAt,
+  } satisfies Tables['job_postings']['Insert'];
+}
+
 /** Supabase meldet Fehler als Rückgabewert; hier werden sie zu Ausnahmen */
 export function unwrap<T>({ data, error }: { data: T; error: unknown }): T {
   if (error) throw error;

@@ -4,6 +4,12 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.5.0 – 2026-11-22
+
+- Löschen direkt am Datensatz: Papierkorb in jeder Zeile der Bewerbungsliste, auf jeder Karte im
+  Board und in jeder Zeile der Stellenangebote – mit „Rückgängig“ statt Rückfrage.
+- „Stellenangebot löschen“ auf der Detailseite ebenfalls mit „Rückgängig“.
+
 ## 0.4.0 – 2026-11-22
 
 - Übersicht: neue erste Kachel „Stellenangebote“ (offene Angebote) und Abschnitt „Neue

@@ -13,12 +13,14 @@ import {
 } from '@/domain/job-postings';
 
 import { useData } from '../app-context';
-import { Empty, formatDate, LoadError } from '../ui';
+import { useDeletePosting } from '../delete-actions';
+import { DeleteButton, Empty, formatDate, LoadError } from '../ui';
 
 /** Gemerkte Stellenangebote (z. B. aus der Browser-Extension) – noch keine Bewerbungen */
 export function JobPostingsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<PostingFilter>('open');
+  const remove = useDeletePosting();
   const state = useData(async (r) => {
     const [postings, applications] = await Promise.all([
       r.jobPostings.list(),
@@ -98,8 +100,14 @@ export function JobPostingsPage() {
                     .join(' · ')}
                 </span>
               </button>
-              <span className="posting-state" data-state={postingStateValue}>
-                {POSTING_STATE_LABELS[postingStateValue]}
+              <span className="row-actions">
+                <span className="posting-state" data-state={postingStateValue}>
+                  {POSTING_STATE_LABELS[postingStateValue]}
+                </span>
+                <DeleteButton
+                  label={`Stellenangebot ${posting.company} · ${posting.role} löschen`}
+                  onDelete={() => void remove(posting)}
+                />
               </span>
             </li>
           ))}

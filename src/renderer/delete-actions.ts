@@ -1,0 +1,46 @@
+import type { JobApplication } from '@/domain/application';
+import type { JobPosting } from '@/domain/job-postings';
+
+import { useApp } from './app-context';
+import { useAction, useToast } from './ui';
+
+// Löschen mit „Rückgängig“ statt Rückfrage – gleich in Listen, Board und auf den Detailseiten.
+// Bewerbungen werden archiviert (Soft Delete), Stellenangebote gelöscht und beim Rückgängig mit
+// derselben id wieder angelegt.
+
+/** Löscht eine Bewerbung; gibt zurück, ob es geklappt hat */
+export function useDeleteApplication() {
+  const { repos } = useApp();
+  const run = useAction();
+  const toast = useToast();
+  return async (application: Pick<JobApplication, 'id' | 'company'>) => {
+    if (!(await run(() => repos.applications.archive(application.id))))
+      return false;
+    toast({
+      text: `Bewerbung ${application.company} gelöscht`,
+      action: {
+        label: 'Rückgängig',
+        run: () => void run(() => repos.applications.restore(application.id)),
+      },
+    });
+    return true;
+  };
+}
+
+/** Löscht ein Stellenangebot; gibt zurück, ob es geklappt hat */
+export function useDeletePosting() {
+  const { repos } = useApp();
+  const run = useAction();
+  const toast = useToast();
+  return async (posting: JobPosting) => {
+    if (!(await run(() => repos.jobPostings.remove(posting.id)))) return false;
+    toast({
+      text: `Stellenangebot ${posting.company} gelöscht`,
+      action: {
+        label: 'Rückgängig',
+        run: () => void run(() => repos.jobPostings.restore(posting)),
+      },
+    });
+    return true;
+  };
+}

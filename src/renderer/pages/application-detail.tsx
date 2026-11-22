@@ -23,6 +23,7 @@ import {
   ContactDialog,
   CustomReminderDialog,
 } from '../components/detail-dialogs';
+import { useDeleteApplication } from '../delete-actions';
 import { ReminderList } from '../components/reminder-list';
 import {
   Empty,
@@ -32,7 +33,6 @@ import {
   Section,
   StatusBadge,
   useAction,
-  useToast,
 } from '../ui';
 
 type OpenDialog =
@@ -45,7 +45,7 @@ export function ApplicationDetailPage() {
   const { repos } = useApp();
   const navigate = useNavigate();
   const run = useAction();
-  const toast = useToast();
+  const deleteApplication = useDeleteApplication();
   const [dialog, setDialog] = useState<OpenDialog>();
   const [note, setNote] = useState('');
 
@@ -116,15 +116,7 @@ export function ApplicationDetailPage() {
     );
 
   async function archive() {
-    if (!(await run(() => repos.applications.archive(id)))) return;
-    navigate('/bewerbungen');
-    toast({
-      text: `${application?.company} gelöscht`,
-      action: {
-        label: 'Rückgängig',
-        run: () => void run(() => repos.applications.restore(id)),
-      },
-    });
+    if (await deleteApplication(application!)) navigate('/bewerbungen');
   }
 
   async function addNote(event: FormEvent) {

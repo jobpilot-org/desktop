@@ -24,7 +24,15 @@ import {
 import { formatAppointmentTime } from '@/domain/details';
 
 import { useApp, useData } from '../app-context';
-import { Empty, formatDate, LoadError, StatusBadge, useAction } from '../ui';
+import { useDeleteApplication } from '../delete-actions';
+import {
+  DeleteButton,
+  Empty,
+  formatDate,
+  LoadError,
+  StatusBadge,
+  useAction,
+} from '../ui';
 
 type View = 'list' | 'board';
 
@@ -204,6 +212,7 @@ function ApplicationTable({
   nextAppointments: ReadonlyMap<string, string>;
   onOpen: (id: string) => void;
 }) {
+  const remove = useDeleteApplication();
   if (!applications.length) return <Empty>Keine Treffer.</Empty>;
   return (
     <table className="table">
@@ -216,6 +225,9 @@ function ApplicationTable({
           <th>Priorität</th>
           <th>Datum</th>
           <th>Nächster Termin</th>
+          <th>
+            <span className="visually-hidden">Aktionen</span>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -252,6 +264,12 @@ function ApplicationTable({
               </td>
               <td>{formatDate(application.appliedAt)}</td>
               <td>{next ? formatAppointmentTime(next) : '–'}</td>
+              <td className="row-delete">
+                <DeleteButton
+                  label={`Bewerbung ${application.company} · ${application.role} löschen`}
+                  onDelete={() => void remove(application)}
+                />
+              </td>
             </tr>
           );
         })}
@@ -275,6 +293,7 @@ function Board({
 }) {
   const { repos } = useApp();
   const run = useAction();
+  const remove = useDeleteApplication();
   const [dragOver, setDragOver] = useState<string>();
 
   const drop = (event: DragEvent, statuses: ApplicationStatus[]) => {
@@ -326,7 +345,13 @@ function Board({
                   onClick={() => onOpen(application.id)}
                   onKeyDown={(e) => e.key === 'Enter' && onOpen(application.id)}
                 >
-                  <strong>{application.company}</strong>
+                  <span className="board-card-title">
+                    <strong>{application.company}</strong>
+                    <DeleteButton
+                      label={`Bewerbung ${application.company} · ${application.role} löschen`}
+                      onDelete={() => void remove(application)}
+                    />
+                  </span>
                   <span className="muted">{application.role}</span>
                   {column.key === 'closed' && (
                     <StatusBadge status={application.status} />

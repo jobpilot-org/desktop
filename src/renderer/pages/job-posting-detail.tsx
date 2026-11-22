@@ -9,14 +9,8 @@ import {
 import { POSTING_STATE_LABELS, postingState } from '@/domain/job-postings';
 
 import { useApp, useData } from '../app-context';
-import {
-  Empty,
-  formatDate,
-  LoadError,
-  Section,
-  useAction,
-  useToast,
-} from '../ui';
+import { useDeletePosting } from '../delete-actions';
+import { Empty, formatDate, LoadError, Section, useAction } from '../ui';
 
 /** Ein Stellenangebot: Eckdaten, Anzeige, Ansprechpartner – und daraus eine Bewerbung machen */
 export function JobPostingDetailPage() {
@@ -24,7 +18,7 @@ export function JobPostingDetailPage() {
   const { repos } = useApp();
   const navigate = useNavigate();
   const run = useAction();
-  const toast = useToast();
+  const deletePosting = useDeletePosting();
 
   const state = useData(
     async (r) => {
@@ -70,16 +64,7 @@ export function JobPostingDetailPage() {
   ];
 
   async function remove() {
-    if (
-      !confirm(
-        `Stellenangebot „${posting!.company} · ${posting!.role}“ löschen?`,
-      )
-    )
-      return;
-    if (await run(() => repos.jobPostings.remove(id))) {
-      navigate('/stellen');
-      toast({ text: 'Stellenangebot gelöscht' });
-    }
+    if (await deletePosting(posting!)) navigate('/stellen');
   }
 
   return (
