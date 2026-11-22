@@ -1,3 +1,4 @@
+import { emptyLetter, orderSections } from '@/domain/cover-letter';
 import { profileToInput } from '@/domain/profile';
 
 import { createRepositories } from '../index';
@@ -320,6 +321,116 @@ describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
         await supabase.from('applications').delete().eq('id', applicationId);
     }
     expect(await repos.jobPostings.get(postingId)).toBeUndefined();
+  });
+
+  it('speichert ein Anschreiben am Stellenangebot und nimmt es zur Bewerbung mit', async () => {
+    const { data: posting, error } = await supabase
+      .from('job_postings')
+      .insert({ company: 'Anschreiben-Test GmbH', role: 'Integrationstest' })
+      .select('id')
+      .single();
+    if (error) throw error;
+    let applicationId: string | undefined;
+    try {
+      const input = {
+        ...emptyLetter(
+          { postingId: posting.id },
+          {
+            company: 'Anschreiben-Test GmbH',
+            role: 'Integrationstest',
+          },
+        ),
+        sections: orderSections([{ key: 'intro', text: 'Einstieg' }]),
+      };
+      const letterId = await repos.coverLetters.save(
+        input,
+        undefined,
+        'test-model',
+      );
+      expect(
+        await repos.coverLetters.find({ postingId: posting.id }),
+      ).toMatchObject({
+        id: letterId,
+        salutation: 'Sehr geehrte Damen und Herren,',
+        subject: 'Bewerbung als Integrationstest',
+        sections: orderSections([{ key: 'intro', text: 'Einstieg' }]),
+      });
+
+      await repos.coverLetters.save(
+        { ...input, subject: 'Geändert', strengths: [' Supabase ', ''] },
+        letterId,
+      );
+      expect(
+        await repos.coverLetters.find({ postingId: posting.id }),
+      ).toMatchObject({
+        subject: 'Geändert',
+        strengths: ['Supabase'],
+      });
+
+      applicationId = (
+        await repos.applications.create({
+          company: 'Anschreiben-Test GmbH',
+          role: 'Integrationstest',
+          location: '',
+          appliedAt: '2026-11-22',
+          status: 'applied',
+          priority: 'normal',
+        })
+      ).id;
+      await repos.coverLetters.linkApplication(posting.id, applicationId);
+      expect((await repos.coverLetters.find({ applicationId }))?.id).toBe(
+        letterId,
+      );
+    } finally {
+      await supabase.from('job_postings').delete().eq('id', posting.id);
+      if (applicationId) {
+        // Stellenangebot weg: das Anschreiben bleibt an der Bewerbung
+        expect(await repos.coverLetters.find({ applicationId })).toMatchObject({
+          postingId: undefined,
+          applicationId,
+        });
+        // Bewerbung auch weg: das Anschreiben verschwindet, statt das Löschen zu blockieren
+        const { error: deleteError } = await supabase
+          .from('applications')
+          .delete()
+          .eq('id', applicationId);
+        expect(deleteError).toBeNull();
+        expect(
+          await repos.coverLetters.find({ applicationId }),
+        ).toBeUndefined();
+      }
+    }
+  });
+
+  it('stellt ein Anschreiben beim Rückgängig des Löschens wieder her', async () => {
+    const { data: posting, error } = await supabase
+      .from('job_postings')
+      .insert({ company: 'Rückgängig-Test GmbH', role: 'Integrationstest' })
+      .select('*')
+      .single();
+    if (error) throw error;
+    try {
+      const letterId = await repos.coverLetters.save({
+        ...emptyLetter(
+          { postingId: posting.id },
+          { company: 'Rückgängig-Test GmbH', role: 'Integrationstest' },
+        ),
+        sections: orderSections([{ key: 'intro', text: 'Einstieg' }]),
+      });
+      const before = await repos.coverLetters.find({ postingId: posting.id });
+      const saved = await repos.jobPostings.get(posting.id);
+      await repos.jobPostings.remove(posting.id);
+      expect(
+        await repos.coverLetters.find({ postingId: posting.id }),
+      ).toBeUndefined();
+      await repos.jobPostings.restore(saved!);
+      await repos.coverLetters.restore(before!);
+      expect(
+        await repos.coverLetters.find({ postingId: posting.id }),
+      ).toMatchObject({ id: letterId, sections: before!.sections });
+    } finally {
+      await repos.jobPostings.remove(posting.id);
+    }
   });
 
   it('speichert Ehrenamt und Links im Profil', async () => {

@@ -15,6 +15,7 @@ import {
 } from '@/domain/job-postings';
 
 import { useApp, useData } from '../app-context';
+import { CoverLetterSection } from '../components/cover-letter';
 import { FitRing, FitSection } from '../components/job-fit';
 import { useDeletePosting } from '../delete-actions';
 import { useProfile } from './profile';
@@ -167,6 +168,11 @@ export function JobPostingDetailPage() {
       )}
 
       <FitSection posting={posting} profile={profile} />
+
+      <CoverLetterSection
+        target={{ postingId: posting.id, applicationId: posting.applicationId }}
+        path={`/stellen/${posting.id}/anschreiben`}
+      />
 
       <div className="columns">
         <div className="stack">

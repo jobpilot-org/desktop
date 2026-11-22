@@ -23,6 +23,7 @@ import {
   ContactDialog,
   CustomReminderDialog,
 } from '../components/detail-dialogs';
+import { CoverLetterSection } from '../components/cover-letter';
 import { useDeleteApplication } from '../delete-actions';
 import { ReminderList } from '../components/reminder-list';
 import {
@@ -171,6 +172,11 @@ export function ApplicationDetailPage() {
           <p>{application.nextStep}</p>
         </section>
       )}
+
+      <CoverLetterSection
+        target={{ applicationId: application.id, postingId: posting?.id }}
+        path={`/bewerbung/${application.id}/anschreiben`}
+      />
 
       <div className="columns">
         <div className="stack">

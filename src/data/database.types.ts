@@ -182,6 +182,73 @@ export type Database = {
           },
         ];
       };
+      cover_letters: {
+        Row: {
+          application_id: string | null;
+          closing: string;
+          created_at: string;
+          id: string;
+          length: string;
+          model: string | null;
+          posting_id: string | null;
+          salutation: string;
+          sections: NonNullable<Json>;
+          strengths: string[];
+          subject: string;
+          tone: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id?: string | null;
+          closing?: string;
+          created_at?: string;
+          id?: string;
+          length?: string;
+          model?: string | null;
+          posting_id?: string | null;
+          salutation?: string;
+          sections?: NonNullable<Json>;
+          strengths?: string[];
+          subject?: string;
+          tone?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          application_id?: string | null;
+          closing?: string;
+          created_at?: string;
+          id?: string;
+          length?: string;
+          model?: string | null;
+          posting_id?: string | null;
+          salutation?: string;
+          sections?: NonNullable<Json>;
+          strengths?: string[];
+          subject?: string;
+          tone?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'cover_letters_user_id_application_id_fkey';
+            columns: ['user_id', 'application_id'];
+            isOneToOne: false;
+            referencedRelation: 'applications';
+            referencedColumns: ['user_id', 'id'];
+          },
+          {
+            foreignKeyName: 'cover_letters_user_id_posting_id_fkey';
+            columns: ['user_id', 'posting_id'];
+            isOneToOne: false;
+            referencedRelation: 'job_postings';
+            referencedColumns: ['user_id', 'id'];
+          },
+        ];
+      };
       documents: {
         Row: {
           created_at: string;

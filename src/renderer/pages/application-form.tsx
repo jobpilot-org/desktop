@@ -126,6 +126,7 @@ export function ApplicationFormPage() {
       if (!id && posting) {
         // Stellenangebot als „beworben“ verknüpfen, Ansprechpartner als Kontakt übernehmen
         await repos.jobPostings.linkApplication(posting.id, targetId);
+        await repos.coverLetters.linkApplication(posting.id, targetId);
         if (posting.contactName) {
           await repos.details.saveContact(targetId, {
             name: posting.contactName,

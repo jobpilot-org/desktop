@@ -1,3 +1,10 @@
+import {
+  LETTER_TONES,
+  orderSections,
+  type CoverLetter,
+  type CoverLetterInput,
+  type LetterTone,
+} from '@/domain/cover-letter';
 import type {
   ApplicationInput,
   ApplicationStatus,
@@ -58,6 +65,7 @@ export type ProfileLinkRow = Tables['profile_links']['Row'];
 export type DocumentRow = Tables['documents']['Row'];
 export type JobPostingRow = Tables['job_postings']['Row'];
 export type JobPostingSourceRow = Tables['job_posting_sources']['Row'];
+export type CoverLetterRow = Tables['cover_letters']['Row'];
 
 /**
  * Postgres liefert `timestamptz` als `…+00:00`; die Domain vergleicht ISO-Strings mit `Z`, wie sie
@@ -393,6 +401,49 @@ export function toJobPostingSourceColumns(source: JobPostingSource) {
 }
 
 /** Supabase meldet Fehler als Rückgabewert; hier werden sie zu Ausnahmen */
+export function toCoverLetter(row: CoverLetterRow): CoverLetter {
+  return {
+    id: row.id,
+    postingId: row.posting_id ?? undefined,
+    applicationId: row.application_id ?? undefined,
+    salutation: row.salutation,
+    tone: (LETTER_TONES as readonly string[]).includes(row.tone)
+      ? (row.tone as LetterTone)
+      : 'modern',
+    length: row.length === 'short' ? 'short' : 'medium',
+    strengths: row.strengths,
+    subject: row.subject,
+    sections: orderSections(
+      Array.isArray(row.sections)
+        ? row.sections.filter(
+            (s): s is { key: string; text: string } =>
+              typeof s === 'object' &&
+              s !== null &&
+              !Array.isArray(s) &&
+              typeof s.key === 'string' &&
+              typeof s.text === 'string',
+          )
+        : [],
+    ),
+    closing: row.closing,
+    updatedAt: toIsoTimestamp(row.updated_at),
+  };
+}
+
+export function toCoverLetterColumns(input: CoverLetterInput) {
+  return {
+    posting_id: input.postingId ?? null,
+    application_id: input.applicationId ?? null,
+    salutation: input.salutation.trim(),
+    tone: input.tone,
+    length: input.length,
+    strengths: input.strengths.map((s) => s.trim()).filter(Boolean),
+    subject: input.subject.trim(),
+    sections: input.sections.map((s) => ({ key: s.key, text: s.text.trim() })),
+    closing: input.closing.trim(),
+  };
+}
+
 export function unwrap<T>({ data, error }: { data: T; error: unknown }): T {
   if (error) throw error;
   return data;

@@ -1723,3 +1723,133 @@ a.stat:hover {
   align-items: center;
   gap: 10px;
 }
+
+/* --- Anschreiben (cover-letter.tsx) --- */
+
+.letter-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.letter-step__title {
+  margin: 12px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.option:has(input:checked) {
+  border-color: var(--accent-link);
+  background: var(--jp-accent-soft);
+}
+
+.option input[type='radio'] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.tone-choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tone-choices .choice[aria-pressed='true'] {
+  border-color: var(--accent-link);
+  background: var(--jp-accent-soft);
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-form input {
+  flex: 1;
+}
+
+.letter-salutation {
+  margin: 8px 0 0;
+  font-weight: 600;
+}
+
+.letter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.letter-section header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.letter-section h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.letter-section[aria-busy='true'] {
+  opacity: 0.6;
+}
+
+.letter-textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+/* Vorschau wie ein Blatt Papier */
+.letter-paper {
+  margin-top: 20px;
+  padding: 48px 56px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.letter-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.letter-summary__intro {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--muted);
+}

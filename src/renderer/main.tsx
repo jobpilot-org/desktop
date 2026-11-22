@@ -7,6 +7,7 @@ import { Layout } from './layout';
 import { ApplicationDetailPage } from './pages/application-detail';
 import { ApplicationFormPage } from './pages/application-form';
 import { ApplicationsPage } from './pages/applications';
+import { CoverLetterPage } from './pages/cover-letter';
 import { InsightsPage } from './pages/insights';
 import { LoginPage } from './pages/login';
 import { OverviewPage } from './pages/overview';
@@ -48,9 +49,17 @@ function App() {
         <Route index element={<OverviewPage />} />
         <Route path="stellen" element={<JobPostingsPage />} />
         <Route path="stellen/:id" element={<JobPostingDetailPage />} />
+        <Route
+          path="stellen/:id/anschreiben"
+          element={<CoverLetterPage kind="posting" />}
+        />
         <Route path="bewerbungen" element={<ApplicationsPage />} />
         <Route path="bewerbung/neu" element={<ApplicationFormPage />} />
         <Route path="bewerbung/:id" element={<ApplicationDetailPage />} />
+        <Route
+          path="bewerbung/:id/anschreiben"
+          element={<CoverLetterPage kind="application" />}
+        />
         <Route
           path="bewerbung/:id/bearbeiten"
           element={<ApplicationFormPage />}
