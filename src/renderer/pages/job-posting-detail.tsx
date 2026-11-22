@@ -15,7 +15,7 @@ import {
 } from '@/domain/job-postings';
 
 import { useApp, useData } from '../app-context';
-import { FitSection } from '../components/job-fit';
+import { FitRing, FitSection } from '../components/job-fit';
 import { useDeletePosting } from '../delete-actions';
 import { useProfile } from './profile';
 import { Empty, formatDate, LoadError, Section, useAction } from '../ui';
@@ -92,9 +92,12 @@ export function JobPostingDetailPage() {
           <h1 className="detail-company">{posting.company}</h1>
           <p className="subtitle">{posting.role}</p>
         </div>
-        <span className="posting-state" data-state={current}>
-          {POSTING_STATE_LABELS[current]}
-        </span>
+        <div className="detail-side">
+          <FitRing posting={posting} profile={profile} size="large" />
+          <span className="posting-state" data-state={current}>
+            {POSTING_STATE_LABELS[current]}
+          </span>
+        </div>
       </div>
 
       {current === 'applied' && application ? (

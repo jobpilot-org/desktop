@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Link } from 'react-router';
 
 import {
@@ -19,38 +19,53 @@ import { formatDateTime, Section } from '../ui';
 const CONSENT_TEXT =
   'Für die Passung werden dein Profil – ohne Name, Anschrift, Telefon, E-Mail und Geburtsdaten – und der Anzeigentext an den jobpilot-Server gesendet und von dort mit deinem eigenen KI-Key an den KI-Anbieter (Anthropic) weitergeleitet.';
 
-/** Score als kleines Abzeichen (Übersicht, Liste); veraltet = blass mit Hinweis */
-export function FitBadge({
+/**
+ * Score als Ring (Liste und Übersicht klein, Kopf der Detailseite groß): Der Ring füllt sich mit
+ * dem Score, die Farbe folgt der Einstufung. Ohne Bewertung ein gestrichelter Platzhalter, damit
+ * die Zeilen bündig bleiben; veraltet = blass mit Hinweis.
+ */
+export function FitRing({
   posting,
   profile,
+  size = 'small',
 }: {
   posting: JobPosting;
   profile?: Profile;
+  size?: 'small' | 'large';
 }) {
   const running = useRunningFits().has(posting.id);
-  if (running) {
+  const fit = posting.fit;
+  if (running || !fit) {
     return (
       <span
-        className="fit-badge"
-        data-level="running"
-        title="Passung wird bewertet …"
+        className="fit-ring"
+        data-size={size}
+        data-level={running ? 'running' : 'none'}
+        title={
+          running ? 'Passung wird bewertet …' : 'Passung noch nicht bewertet'
+        }
       >
-        …
+        <span className="fit-ring__value">{running ? '…' : '–'}</span>
+        {size === 'large' && <span className="fit-ring__label">Passung</span>}
       </span>
     );
   }
-  if (!posting.fit) return null;
   const outdated = fitStatus(posting, profile) === 'outdated';
   return (
     <span
-      className="fit-badge"
-      data-level={posting.fit.level}
+      className="fit-ring"
+      data-size={size}
+      data-level={fit.level}
       data-outdated={outdated || undefined}
-      title={`Passung ${posting.fit.score} von 100 – ${FIT_LEVEL_LABELS[posting.fit.level]}${
+      style={{ '--fit': fit.score } as CSSProperties}
+      role="img"
+      aria-label={`Passung ${fit.score} von 100`}
+      title={`Passung ${fit.score} von 100 – ${FIT_LEVEL_LABELS[fit.level]}${
         outdated ? ' (veraltet: Profil oder Anzeige geändert)' : ''
       }`}
     >
-      {posting.fit.score}
+      <span className="fit-ring__value">{fit.score}</span>
+      {size === 'large' && <span className="fit-ring__label">Passung</span>}
     </span>
   );
 }
@@ -108,14 +123,10 @@ export function FitSection({
       {fit ? (
         <div className="fit">
           <div className="fit-head">
-            <span className="fit-score" data-level={fit.level}>
-              <strong>{fit.score}</strong>
-              <span>von 100</span>
-            </span>
-            <div>
-              <p className="fit-level">{FIT_LEVEL_LABELS[fit.level]}</p>
-              {fit.summary && <p>{fit.summary}</p>}
-            </div>
+            <p className="fit-level" data-level={fit.level}>
+              {FIT_LEVEL_LABELS[fit.level]} · {fit.score} von 100
+            </p>
+            {fit.summary && <p>{fit.summary}</p>}
           </div>
 
           {status === 'outdated' && (

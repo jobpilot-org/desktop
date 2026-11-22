@@ -13,7 +13,7 @@ import {
 } from '@/domain/job-postings';
 
 import { useData } from '../app-context';
-import { FitBadge } from '../components/job-fit';
+import { FitRing } from '../components/job-fit';
 import { useDeletePosting } from '../delete-actions';
 import { useProfile } from './profile';
 import { DeleteButton, Empty, formatDate, LoadError } from '../ui';
@@ -83,7 +83,8 @@ export function JobPostingsPage() {
       ) : (
         <ul className="rows card posting-list">
           {visible.map(({ posting, state: postingStateValue }) => (
-            <li key={posting.id} className="row">
+            <li key={posting.id} className="row posting-row">
+              <FitRing posting={posting} profile={profile} />
               <button
                 type="button"
                 className="row-main plain"
@@ -104,7 +105,6 @@ export function JobPostingsPage() {
                 </span>
               </button>
               <span className="row-actions">
-                <FitBadge posting={posting} profile={profile} />
                 <span className="posting-state" data-state={postingStateValue}>
                   {POSTING_STATE_LABELS[postingStateValue]}
                 </span>

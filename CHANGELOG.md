@@ -4,6 +4,11 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.8.1 – 2026-11-22
+
+- Passung als Ring statt kleinem Abzeichen: links vor jedem Stellenangebot in Liste und Übersicht,
+  groß oben rechts in der Detailseite; noch nicht bewertete Angebote mit Platzhalter.
+
 ## 0.8.0 – 2026-11-22
 
 - Stellenangebote mit **mehreren Quellen** (Jobportal und Firmenseite): Die Angaben der Firmenseite

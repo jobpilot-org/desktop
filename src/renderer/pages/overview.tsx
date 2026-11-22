@@ -13,7 +13,7 @@ import { postingState } from '@/domain/job-postings';
 import { dueToday } from '@/domain/reminders';
 
 import { useData } from '../app-context';
-import { FitBadge } from '../components/job-fit';
+import { FitRing } from '../components/job-fit';
 import { ReminderList } from '../components/reminder-list';
 import { useProfile } from './profile';
 import { Empty, LoadError, Section } from '../ui';
@@ -125,7 +125,8 @@ export function OverviewPage() {
         {openPostings.length ? (
           <ul className="rows">
             {openPostings.slice(0, 5).map((posting) => (
-              <li key={posting.id} className="row">
+              <li key={posting.id} className="row posting-row">
+                <FitRing posting={posting} profile={profile} />
                 <div className="row-main">
                   <Link to={`/stellen/${posting.id}`}>
                     <strong>{posting.company}</strong>
@@ -136,7 +137,6 @@ export function OverviewPage() {
                       .join(' · ')}
                   </span>
                 </div>
-                <FitBadge posting={posting} profile={profile} />
               </li>
             ))}
           </ul>

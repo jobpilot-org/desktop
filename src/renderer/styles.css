@@ -1486,40 +1486,6 @@ a.stat:hover {
 
 /* --- Passung (components/job-fit.tsx) --- */
 
-.fit-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 34px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  background: var(--jp-status-saved-bg);
-  color: var(--jp-status-saved-text);
-}
-
-.fit-badge[data-level='hoch'] {
-  background: var(--jp-status-interview-bg);
-  color: var(--jp-status-interview-text);
-}
-
-.fit-badge[data-level='mittel'] {
-  background: var(--jp-status-offer-bg);
-  color: var(--jp-status-offer-text);
-}
-
-.fit-badge[data-level='gering'] {
-  background: var(--jp-status-rejected-bg);
-  color: var(--jp-status-rejected-text);
-}
-
-.fit-badge[data-outdated] {
-  opacity: 0.55;
-}
-
 .fit {
   display: flex;
   flex-direction: column;
@@ -1539,47 +1505,24 @@ a.stat:hover {
 
 .fit-head {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.fit-score {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  background: var(--jp-status-saved-bg);
-  color: var(--jp-status-saved-text);
-}
-
-.fit-score strong {
-  font-size: 26px;
-  line-height: 1;
-}
-
-.fit-score span {
-  font-size: 11px;
-}
-
-.fit-score[data-level='hoch'] {
-  background: var(--jp-status-interview-bg);
-  color: var(--jp-status-interview-text);
-}
-
-.fit-score[data-level='mittel'] {
-  background: var(--jp-status-offer-bg);
-  color: var(--jp-status-offer-text);
-}
-
-.fit-score[data-level='gering'] {
-  background: var(--jp-status-rejected-bg);
-  color: var(--jp-status-rejected-text);
+  flex-direction: column;
+  gap: 4px;
 }
 
 .fit-level {
   font-weight: 700;
+}
+
+.fit-level[data-level='hoch'] {
+  color: var(--jp-status-interview-text);
+}
+
+.fit-level[data-level='mittel'] {
+  color: var(--jp-status-offer-text);
+}
+
+.fit-level[data-level='gering'] {
+  color: var(--jp-status-rejected-text);
 }
 
 .fit-columns {
@@ -1671,4 +1614,112 @@ a.stat:hover {
 
 .source-differences .jp-eyebrow {
   color: inherit;
+}
+
+/* Passung als Ring (FitRing): conic-gradient füllt den Ring zu --fit Prozent */
+.fit-ring {
+  --ring: var(--muted);
+  --size: 44px;
+  --thickness: 4px;
+  position: relative;
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  align-content: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--ring) calc(var(--fit, 0) * 1%),
+    var(--jp-background-selected) 0
+  );
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Innenfläche des Rings */
+.fit-ring::before {
+  content: '';
+  position: absolute;
+  inset: var(--thickness);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.fit-ring > span {
+  position: relative;
+}
+
+.fit-ring__value {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fit-ring__label {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.fit-ring[data-size='large'] {
+  --size: 84px;
+  --thickness: 7px;
+}
+
+.fit-ring[data-size='large'] .fit-ring__value {
+  font-size: 26px;
+}
+
+.fit-ring[data-size='large']::before {
+  background: var(--jp-background);
+}
+
+.fit-ring[data-level='hoch'] {
+  --ring: var(--jp-status-interview-dot);
+}
+
+.fit-ring[data-level='mittel'] {
+  --ring: var(--jp-status-offer-dot);
+}
+
+.fit-ring[data-level='gering'] {
+  --ring: var(--jp-status-rejected-dot);
+}
+
+.fit-ring[data-level='none'],
+.fit-ring[data-level='running'] {
+  background: none;
+  border: 2px dashed var(--border);
+  color: var(--muted);
+}
+
+.fit-ring[data-level='none']::before,
+.fit-ring[data-level='running']::before {
+  display: none;
+}
+
+.fit-ring[data-outdated] {
+  opacity: 0.55;
+}
+
+/* Zeilen mit Ring: Ring links, Inhalt füllt, Aktionen rechts */
+.posting-row {
+  justify-content: flex-start;
+  gap: 14px;
+}
+
+.posting-row .row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
