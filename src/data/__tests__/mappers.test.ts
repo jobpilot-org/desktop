@@ -3,6 +3,7 @@ import type { ApplicationInput } from '@/domain/application';
 import {
   toApplicationColumns,
   toDocument,
+  toJobPosting,
   toIsoTimestamp,
   toJobApplication,
   toReminder,
@@ -132,6 +133,48 @@ describe('toDocument', () => {
       storagePath: '11111111-1111-1111-1111-111111111111/d1/zeugnis.pdf',
       profileEntryId: undefined,
       createdAt: '2026-11-21T08:00:00.000Z',
+    });
+  });
+});
+
+describe('toJobPosting', () => {
+  it('wandelt Spalten um, leere Felder werden undefined', () => {
+    expect(
+      toJobPosting({
+        id: 'p1',
+        user_id: '11111111-1111-1111-1111-111111111111',
+        company: 'Acme',
+        role: 'Dev',
+        location: '',
+        work_mode: 'remote',
+        salary_min: 60000,
+        salary_max: null,
+        source: 'Indeed',
+        job_url: 'https://de.indeed.com/viewjob?jk=abc',
+        job_description: null,
+        contact_name: 'Frau Muster',
+        contact_email: null,
+        application_id: null,
+        dismissed_at: '2026-11-22T09:00:00+00:00',
+        created_at: '2026-11-22T08:00:00+00:00',
+        updated_at: '2026-11-22T08:00:00+00:00',
+      }),
+    ).toEqual({
+      id: 'p1',
+      company: 'Acme',
+      role: 'Dev',
+      location: '',
+      workMode: 'remote',
+      salaryMin: 60000,
+      salaryMax: undefined,
+      source: 'Indeed',
+      jobUrl: 'https://de.indeed.com/viewjob?jk=abc',
+      jobDescription: undefined,
+      contactName: 'Frau Muster',
+      contactEmail: undefined,
+      applicationId: undefined,
+      dismissedAt: '2026-11-22T09:00:00.000Z',
+      createdAt: '2026-11-22T08:00:00.000Z',
     });
   });
 });

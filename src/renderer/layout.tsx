@@ -7,6 +7,8 @@ import { useReminderService } from './use-reminder-service';
 
 const NAV: { to: string; label: string; end: boolean; also?: string }[] = [
   { to: '/', label: 'Übersicht', end: true },
+  // Gemerkte Anzeigen, noch keine Bewerbungen (Detail unter /stellen/:id)
+  { to: '/stellen', label: 'Stellenangebote', end: false },
   // Auch Detailseite und Formular (/bewerbung/…) gehören zum Tab „Bewerbungen“
   { to: '/bewerbungen', label: 'Bewerbungen', end: false, also: '/bewerbung/' },
   { to: '/auswertung', label: 'Auswertung', end: false },

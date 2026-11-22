@@ -15,6 +15,8 @@ import { ProfileAssistantPage } from './pages/profile-assistant';
 import { ProfileImportPage } from './pages/profile-import';
 import { ProfileReviewPage } from './pages/profile-review';
 import { DocumentsPage } from './pages/documents';
+import { JobPostingDetailPage } from './pages/job-posting-detail';
+import { JobPostingsPage } from './pages/job-postings';
 import { RegisterPage } from './pages/register';
 import { SettingsPage } from './pages/settings';
 import { WelcomePage } from './pages/welcome';
@@ -40,6 +42,8 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<OverviewPage />} />
+        <Route path="stellen" element={<JobPostingsPage />} />
+        <Route path="stellen/:id" element={<JobPostingDetailPage />} />
         <Route path="bewerbungen" element={<ApplicationsPage />} />
         <Route path="bewerbung/neu" element={<ApplicationFormPage />} />
         <Route path="bewerbung/:id" element={<ApplicationDetailPage />} />

@@ -233,6 +233,75 @@ export type Database = {
           },
         ];
       };
+      job_postings: {
+        Row: {
+          application_id: string | null;
+          company: string;
+          contact_email: string | null;
+          contact_name: string | null;
+          created_at: string;
+          dismissed_at: string | null;
+          id: string;
+          job_description: string | null;
+          job_url: string | null;
+          location: string;
+          role: string;
+          salary_max: number | null;
+          salary_min: number | null;
+          source: string | null;
+          updated_at: string;
+          user_id: string;
+          work_mode: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id?: string | null;
+          company: string;
+          contact_email?: string | null;
+          contact_name?: string | null;
+          created_at?: string;
+          dismissed_at?: string | null;
+          id?: string;
+          job_description?: string | null;
+          job_url?: string | null;
+          location?: string;
+          role: string;
+          salary_max?: number | null;
+          salary_min?: number | null;
+          source?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          work_mode?: string | null;
+        };
+        Update: {
+          application_id?: string | null;
+          company?: string;
+          contact_email?: string | null;
+          contact_name?: string | null;
+          created_at?: string;
+          dismissed_at?: string | null;
+          id?: string;
+          job_description?: string | null;
+          job_url?: string | null;
+          location?: string;
+          role?: string;
+          salary_max?: number | null;
+          salary_min?: number | null;
+          source?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          work_mode?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'job_postings_user_id_application_id_fkey';
+            columns: ['user_id', 'application_id'];
+            isOneToOne: false;
+            referencedRelation: 'applications';
+            referencedColumns: ['user_id', 'id'];
+          },
+        ];
+      };
       notes: {
         Row: {
           application_id: string;

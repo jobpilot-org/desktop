@@ -27,6 +27,7 @@ import type {
   DocumentMimeType,
   ProfileDocument,
 } from '@/domain/documents';
+import type { JobPosting } from '@/domain/job-postings';
 import type { Reminder, ReminderKind } from '@/domain/reminders';
 
 import type { Database } from './database.types';
@@ -47,6 +48,7 @@ export type ProfileEntryRow = Tables['profile_entries']['Row'];
 export type ProfileSkillRow = Tables['profile_skills']['Row'];
 export type ProfileLanguageRow = Tables['profile_languages']['Row'];
 export type DocumentRow = Tables['documents']['Row'];
+export type JobPostingRow = Tables['job_postings']['Row'];
 
 /**
  * Postgres liefert `timestamptz` als `…+00:00`; die Domain vergleicht ISO-Strings mit `Z`, wie sie
@@ -257,6 +259,26 @@ export function toDocument(row: DocumentRow): ProfileDocument {
     sizeBytes: row.size_bytes,
     storagePath: row.storage_path,
     profileEntryId: row.profile_entry_id ?? undefined,
+    createdAt: toIsoTimestamp(row.created_at),
+  };
+}
+
+export function toJobPosting(row: JobPostingRow): JobPosting {
+  return {
+    id: row.id,
+    company: row.company,
+    role: row.role,
+    location: row.location,
+    workMode: (row.work_mode as WorkMode | null) ?? undefined,
+    salaryMin: row.salary_min ?? undefined,
+    salaryMax: row.salary_max ?? undefined,
+    source: row.source ?? undefined,
+    jobUrl: row.job_url ?? undefined,
+    jobDescription: row.job_description ?? undefined,
+    contactName: row.contact_name ?? undefined,
+    contactEmail: row.contact_email ?? undefined,
+    applicationId: row.application_id ?? undefined,
+    dismissedAt: optionalTimestamp(row.dismissed_at),
     createdAt: toIsoTimestamp(row.created_at),
   };
 }

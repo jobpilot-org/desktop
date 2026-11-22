@@ -60,18 +60,7 @@ describe('findDuplicates', () => {
         { company: 'FLH', role: 'Dev', jobUrl: 'https://de.indeed.com/jobs?q=dev&vjk=abc123' },
         existing,
       ),
-    ).toEqual([
-      {
-        application: {
-          id: 'indeed',
-          company: 'Andere Firma',
-          role: 'Senior Software & App Engineer (m/w/d)',
-          status: 'saved',
-          appliedAt: '2026-11-20',
-        },
-        reason: 'url',
-      },
-    ]);
+    ).toEqual([{ item: existing[0], reason: 'url' }]);
   });
 
   it('erkennt Firma + Position trotz Rechtsform und Gender-Zusatz', () => {
@@ -79,7 +68,7 @@ describe('findDuplicates', () => {
       { company: 'FLH Media Digital', role: 'Senior Software & App Engineer (w/m/d)' },
       [application({ id: 'a1', status: 'rejected' })],
     );
-    expect(matches).toMatchObject([{ application: { id: 'a1', status: 'rejected' }, reason: 'company-role' }]);
+    expect(matches).toMatchObject([{ item: { id: 'a1', status: 'rejected' }, reason: 'company-role' }]);
   });
 
   it('erkennt umbenannte Position am fast gleichen Anzeigentext', () => {
@@ -107,11 +96,11 @@ describe('findDuplicates', () => {
       role: 'Senior Software & App Engineer',
       jobUrl: 'https://www.a.de/job/1/?utm_source=x',
     };
-    expect(findDuplicates(candidate, existing).map((m) => [m.application.id, m.reason])).toEqual([
+    expect(findDuplicates(candidate, existing).map((m) => [m.item.id, m.reason])).toEqual([
       ['same-url', 'url'],
       ['same-role', 'company-role'],
     ]);
-    expect(findDuplicates(candidate, existing, 'same-role').map((m) => m.application.id)).toEqual(['same-url']);
+    expect(findDuplicates(candidate, existing, 'same-role').map((m) => m.item.id)).toEqual(['same-url']);
   });
 
   it('meldet bei leerer Firma keine Treffer über Firma', () => {

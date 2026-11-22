@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import {
   APPLICATION_STATUSES,
@@ -10,12 +10,17 @@ import {
   toLocalIsoDate,
   WORK_MODES,
   WORK_MODE_LABELS,
+  type JobApplication,
 } from '@/domain/application';
 import {
   DUPLICATE_REASON_LABELS,
   findDuplicates,
   type DuplicateMatch,
 } from '@/domain/duplicates';
+import {
+  postingToApplicationForm,
+  type JobPosting,
+} from '@/domain/job-postings';
 import {
   applicationToForm,
   emptyApplicationForm,
@@ -30,6 +35,12 @@ import { Empty, Field, formatDate, LoadError, useToast } from '../ui';
 /** Neue Bewerbung (ohne :id) oder Bearbeiten einer bestehenden */
 export function ApplicationFormPage() {
   const { id } = useParams();
+  // Bewerbung aus einem Stellenangebot (/bewerbung/neu?stellenangebot=<id>)
+  const [searchParams] = useSearchParams();
+  const postingId = id
+    ? undefined
+    : (searchParams.get('stellenangebot') ?? undefined);
+  const [posting, setPosting] = useState<JobPosting>();
   const { repos, notifyChange } = useApp();
   const navigate = useNavigate();
   const toast = useToast();
@@ -40,11 +51,24 @@ export function ApplicationFormPage() {
   >({});
   const [busy, setBusy] = useState(false);
   // Treffer der Dublettenprüfung; gesetzt = Hinweis zeigen, Speichern erst nach Bestätigung
-  const [duplicates, setDuplicates] = useState<DuplicateMatch[]>();
+  const [duplicates, setDuplicates] =
+    useState<DuplicateMatch<JobApplication>[]>();
 
   useEffect(() => {
     if (!id) {
-      setValues(emptyApplicationForm(toLocalIsoDate(new Date())));
+      const today = toLocalIsoDate(new Date());
+      if (!postingId) {
+        setValues(emptyApplicationForm(today));
+        return;
+      }
+      repos.jobPostings.get(postingId).then((found) => {
+        setPosting(found);
+        setValues(
+          found
+            ? postingToApplicationForm(found, today)
+            : emptyApplicationForm(today),
+        );
+      }, setLoadError);
       return;
     }
     repos.applications
@@ -54,7 +78,7 @@ export function ApplicationFormPage() {
           application && setValues(applicationToForm(application)),
         setLoadError,
       );
-  }, [id, repos]);
+  }, [id, postingId, repos]);
 
   if (loadError) return <LoadError error={loadError} />;
   if (!values) return id ? <Empty>Bewerbung wird geladen …</Empty> : null;
@@ -99,6 +123,16 @@ export function ApplicationFormPage() {
       }
       const targetId = id ?? (await repos.applications.create(result.value)).id;
       if (id) await repos.applications.update(id, result.value);
+      if (!id && posting) {
+        // Stellenangebot als „beworben“ verknüpfen, Ansprechpartner als Kontakt übernehmen
+        await repos.jobPostings.linkApplication(posting.id, targetId);
+        if (posting.contactName) {
+          await repos.details.saveContact(targetId, {
+            name: posting.contactName,
+            email: posting.contactEmail,
+          });
+        }
+      }
       notifyChange();
       toast({ text: id ? 'Änderungen gespeichert' : 'Bewerbung angelegt' });
       navigate(`/bewerbung/${targetId}`, { replace: true });
@@ -111,7 +145,10 @@ export function ApplicationFormPage() {
   return (
     <form className="page" onSubmit={submit} noValidate>
       <div className="page-header">
-        <h1>{id ? 'Bewerbung bearbeiten' : 'Neue Bewerbung'}</h1>
+        <div>
+          {posting && <p className="jp-eyebrow">Aus Stellenangebot</p>}
+          <h1>{id ? 'Bewerbung bearbeiten' : 'Neue Bewerbung'}</h1>
+        </div>
         <div className="toolbar">
           <button type="button" onClick={() => navigate(-1)}>
             Abbrechen
@@ -233,7 +270,7 @@ function DuplicateNotice({
   onSaveAnyway,
   onCancel,
 }: {
-  matches: DuplicateMatch[];
+  matches: DuplicateMatch<JobApplication>[];
   busy: boolean;
   onSaveAnyway: () => void;
   onCancel: () => void;
@@ -247,7 +284,7 @@ function DuplicateNotice({
           : `Diese Stelle gibt es möglicherweise schon ${matches.length}-mal:`}
       </p>
       <ul className="rows">
-        {matches.map(({ application, reason }) => (
+        {matches.map(({ item: application, reason }) => (
           <li key={application.id} className="row">
             <span className="row-main">
               <strong>

@@ -1380,3 +1380,34 @@ a.stat:hover {
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* --- Stellenangebote (pages/job-postings.tsx, job-posting-detail.tsx) --- */
+
+.posting-list {
+  margin-top: 12px;
+  padding: 0 16px;
+}
+
+.posting-state {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--jp-status-saved-bg);
+  color: var(--jp-status-saved-text);
+}
+
+.posting-state[data-state='applied'] {
+  background: var(--jp-status-applied-bg);
+  color: var(--jp-status-applied-text);
+}
+
+.posting-state[data-state='dismissed'] {
+  background: var(--jp-status-withdrawn-bg);
+  color: var(--jp-status-withdrawn-text);
+}
+
+.posting-actions {
+  margin: 4px 0 8px;
+}

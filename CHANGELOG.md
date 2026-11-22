@@ -4,6 +4,16 @@ Versionen nach [SemVer](https://semver.org/lang/de/): neue Funktion → MINOR, F
 PATCH. Unter 1.0 noch nicht offiziell veröffentlicht. Die Version steht in `package.json` und in
 der App unter Einstellungen → „Über jobpilot“.
 
+## 0.3.0 – 2026-11-22
+
+- Neuer Menüpunkt **„Stellenangebote“**: gemerkte Anzeigen (z. B. aus der Browser-Extension) sind
+  keine Bewerbungen mehr, sondern Stellenangebote – mit Filter Offen/Beworben/Verworfen, Detailseite
+  mit Eckdaten, Anzeigentext, Ansprechpartner und Link zur Anzeige.
+- „Bewerbung anlegen“ füllt das Bewerbungsformular aus dem Stellenangebot vor (Status „Beworben“);
+  danach zeigt das Stellenangebot „Bewerbung angelegt“ mit Link, die Bewerbung „Aus Stellenangebot
+  vom …“ mit Link zurück. Der Ansprechpartner wird als Kontakt übernommen.
+- „Nicht interessant“ verwirft ein Stellenangebot, „Wieder öffnen“ holt es zurück.
+
 ## 0.2.0 – 2026-11-21
 
 - Dublettenprüfung beim Anlegen und Bearbeiten einer Bewerbung: Gibt es die Stelle schon (gleiche

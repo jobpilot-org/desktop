@@ -51,16 +51,32 @@ export function ApplicationDetailPage() {
 
   const state = useData(
     async (r) => {
-      const [application, events, notes, appointments, contacts, reminders] =
-        await Promise.all([
-          r.applications.get(id),
-          r.applications.statusEvents(id),
-          r.details.notes(id),
-          r.details.appointments(id),
-          r.details.contacts(id),
-          r.reminders.forApplication(id),
-        ]);
-      return { application, events, notes, appointments, contacts, reminders };
+      const [
+        application,
+        events,
+        notes,
+        appointments,
+        contacts,
+        reminders,
+        posting,
+      ] = await Promise.all([
+        r.applications.get(id),
+        r.applications.statusEvents(id),
+        r.details.notes(id),
+        r.details.appointments(id),
+        r.details.contacts(id),
+        r.reminders.forApplication(id),
+        r.jobPostings.findByApplication(id),
+      ]);
+      return {
+        application,
+        events,
+        notes,
+        appointments,
+        contacts,
+        reminders,
+        posting,
+      };
     },
     [id],
   );
@@ -68,8 +84,15 @@ export function ApplicationDetailPage() {
   if (state.status === 'error' && !state.data)
     return <LoadError error={state.error} />;
   if (!state.data) return null;
-  const { application, events, notes, appointments, contacts, reminders } =
-    state.data;
+  const {
+    application,
+    events,
+    notes,
+    appointments,
+    contacts,
+    reminders,
+    posting,
+  } = state.data;
   if (!application) {
     return (
       <div className="page">
@@ -187,6 +210,17 @@ export function ApplicationDetailPage() {
                 <>
                   <dt>Gehalt</dt>
                   <dd>{salary}</dd>
+                </>
+              )}
+              {posting && (
+                <>
+                  <dt>Herkunft</dt>
+                  <dd>
+                    <Link to={`/stellen/${posting.id}`}>
+                      Aus Stellenangebot vom{' '}
+                      {formatDate(posting.createdAt.slice(0, 10))}
+                    </Link>
+                  </dd>
                 </>
               )}
               {application.jobUrl && (

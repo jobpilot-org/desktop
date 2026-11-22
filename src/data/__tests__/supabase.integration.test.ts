@@ -264,4 +264,53 @@ describe.runIf(enabled)('Repositories gegen lokale Supabase', () => {
       (await repos.documents.list()).filter((d) => created.includes(d.id)),
     ).toEqual([]);
   });
+
+  it('verknüpft ein Stellenangebot mit der daraus angelegten Bewerbung', async () => {
+    const { data, error } = await supabase
+      .from('job_postings')
+      .insert({
+        company: 'Stellen-Test GmbH',
+        role: 'Integrationstest',
+        contact_name: 'Frau Muster',
+      })
+      .select('id')
+      .single();
+    if (error) throw error;
+    const postingId = data.id;
+    let applicationId: string | undefined;
+    try {
+      expect((await repos.jobPostings.list()).map((p) => p.id)).toContain(
+        postingId,
+      );
+      await repos.jobPostings.setDismissed(postingId, true);
+      expect((await repos.jobPostings.get(postingId))?.dismissedAt).toMatch(
+        /Z$/,
+      );
+
+      applicationId = (
+        await repos.applications.create({
+          company: 'Stellen-Test GmbH',
+          role: 'Integrationstest',
+          location: '',
+          appliedAt: '2026-11-22',
+          status: 'applied',
+          priority: 'normal',
+        })
+      ).id;
+      await repos.jobPostings.linkApplication(postingId, applicationId);
+      expect(await repos.jobPostings.get(postingId)).toMatchObject({
+        applicationId,
+        dismissedAt: undefined,
+        contactName: 'Frau Muster',
+      });
+      expect(
+        (await repos.jobPostings.findByApplication(applicationId))?.id,
+      ).toBe(postingId);
+    } finally {
+      await repos.jobPostings.remove(postingId);
+      if (applicationId)
+        await supabase.from('applications').delete().eq('id', applicationId);
+    }
+    expect(await repos.jobPostings.get(postingId)).toBeUndefined();
+  });
 });
