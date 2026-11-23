@@ -1,6 +1,8 @@
+import { SECTION_KEYS, type LetterInput } from '@jobpilot-org/shared-ai/features/cover-letter';
+
 import type { FitResult } from '@/domain/job-fit';
 import type { Profile } from '@/domain/profile';
-import { reviewRequest, type ReviewRequest } from '@/domain/profile-review';
+import { reviewRequest } from '@/domain/profile-review';
 
 // Anschreiben: je Stellenangebot bzw. Bewerbung eines, gespeichert in Teilen (Ansprache,
 // Tonalität, Länge, Stärken, Betreff, Abschnitte), damit der Assistent Abschnitt für Abschnitt
@@ -67,7 +69,7 @@ export const LETTER_LENGTH_LABELS: Record<LetterLength, string> = {
   medium: 'Standard (etwa eine Seite)',
 };
 
-export const SECTION_KEYS = ['intro', 'fit', 'strengths', 'motivation', 'closing'] as const;
+export { SECTION_KEYS };
 export type SectionKey = (typeof SECTION_KEYS)[number];
 export const SECTION_LABELS: Record<SectionKey, string> = {
   intro: 'Einstieg',
@@ -216,19 +218,7 @@ export function emptyLetter(
   };
 }
 
-export type LetterRequest = {
-  mode: 'draft' | 'section';
-  profile: ReviewRequest['profile'];
-  posting: { company: string; role: string; location?: string; description?: string };
-  salutation: string;
-  address: LetterAddress;
-  tone: LetterTone;
-  length: LetterLength;
-  strengths: string[];
-  sections?: LetterSection[];
-  section?: SectionKey;
-  hint?: string;
-};
+export type LetterRequest = LetterInput;
 
 /** Anfrage an `cover-letter`: Profil ohne Name und Kontaktdaten wie beim KI-Check */
 export function letterRequest(

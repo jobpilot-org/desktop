@@ -1,3 +1,9 @@
+import { invokeAiFunction } from '@jobpilot-org/shared-ai/client/supabase';
+import {
+  AiFunctionError,
+  type AiFunctionErrorCode,
+} from '@jobpilot-org/shared-ai/errors';
+
 import {
   fitRequest,
   parseFit,
@@ -6,11 +12,6 @@ import {
 } from '@/domain/job-fit';
 import type { Profile } from '@/domain/profile';
 
-import {
-  AiFunctionError,
-  invokeAiFunction,
-  type AiFunctionErrorCode,
-} from './ai-function';
 import type { Supabase } from './supabase';
 
 const MESSAGES: Record<AiFunctionErrorCode, string> = {

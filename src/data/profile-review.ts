@@ -1,3 +1,9 @@
+import { invokeAiFunction } from '@jobpilot-org/shared-ai/client/supabase';
+import {
+  AiFunctionError,
+  type AiFunctionErrorCode,
+} from '@jobpilot-org/shared-ai/errors';
+
 import type { Profile } from '@/domain/profile';
 import {
   parseProfileReview,
@@ -5,11 +11,6 @@ import {
   type ProfileReview,
 } from '@/domain/profile-review';
 
-import {
-  AiFunctionError,
-  invokeAiFunction,
-  type AiFunctionErrorCode,
-} from './ai-function';
 import type { Supabase } from './supabase';
 
 const MESSAGES: Record<AiFunctionErrorCode, string> = {

@@ -1,3 +1,4 @@
+import { reviewInputSchema } from '@jobpilot-org/shared-ai/features/profile-review';
 import { z } from 'zod';
 
 import {
@@ -23,30 +24,10 @@ import {
 
 // --- Anfrage ---------------------------------------------------------------------------------
 
-/** Profil, wie es an die KI geht: ohne Name und Kontaktdaten, nur ob sie vorhanden sind */
-export type ReviewProfile = {
-  headline?: string;
-  city?: string;
-  summary?: string;
-  contact: { address: boolean; phone: boolean; email: boolean; birthDate: boolean };
-  experience: ReviewEntry[];
-  education: ReviewEntry[];
-  /** Nur gesetzt, wenn es Ehrenämter gibt – ältere Server kennen das Feld nicht verpflichtend */
-  volunteering?: ReviewEntry[];
-  skills: { id: string; category?: string; items: string }[];
-  languages: { language: string; level?: string }[];
-};
-
-type ReviewEntry = {
-  id: string;
-  title: string;
-  organization?: string;
-  location?: string;
-  description?: string;
-  period: string;
-};
-
-export type ReviewRequest = { profile: ReviewProfile };
+/** Anfrage an `profile-review`: Profil ohne Name und Kontaktdaten, nur ob sie vorhanden sind */
+export type ReviewRequest = z.infer<typeof reviewInputSchema>;
+export type ReviewProfile = ReviewRequest['profile'];
+type ReviewEntry = ReviewProfile['experience'][number];
 
 export function reviewRequest(profile: Profile): ReviewRequest {
   const entry = (e: ProfileEntry): ReviewEntry => ({

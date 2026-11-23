@@ -1,3 +1,9 @@
+import { invokeAiFunction } from '@jobpilot-org/shared-ai/client/supabase';
+import {
+  AiFunctionError,
+  type AiFunctionErrorCode,
+} from '@jobpilot-org/shared-ai/errors';
+
 import {
   letterRequest,
   parseDraft,
@@ -10,11 +16,6 @@ import {
 } from '@/domain/cover-letter';
 import type { Profile } from '@/domain/profile';
 
-import {
-  AiFunctionError,
-  invokeAiFunction,
-  type AiFunctionErrorCode,
-} from './ai-function';
 import { toCoverLetter, toCoverLetterColumns, unwrap } from './mappers';
 import type { Supabase } from './supabase';
 

@@ -1,12 +1,15 @@
+import { fitInputSchema, fitSchema } from '@jobpilot-org/shared-ai/features/job-fit';
+import type { z } from 'zod';
+
 import type { Profile } from '@/domain/profile';
-import { canReview, reviewRequest, type ReviewRequest } from '@/domain/profile-review';
+import { canReview, reviewRequest } from '@/domain/profile-review';
 
 // Passung des Profils zu einem Stellenangebot: Die KI (Edge Function `job-fit`) bewertet sie mit
 // Score, Pros, Contras und Prognose. Das Ergebnis liegt am Stellenangebot, zusammen mit Hashes von
 // Profil und Anzeigentext. Weichen die Hashes vom aktuellen Stand ab, gilt es als veraltet und wird
 // nur auf Wunsch neu berechnet – so werden Tokens gespart (Idee aus Feature ⁷).
 
-export const FIT_LEVELS = ['hoch', 'mittel', 'gering'] as const;
+export const FIT_LEVELS = fitSchema.shape.level.options;
 export type FitLevel = (typeof FIT_LEVELS)[number];
 
 export const FIT_LEVEL_LABELS: Record<FitLevel, string> = {
@@ -21,16 +24,7 @@ export const CHANCE_LABELS: Record<FitLevel, string> = {
   gering: 'Geringe Aussichten',
 };
 
-export type FitResult = {
-  /** 0–100 */
-  score: number;
-  level: FitLevel;
-  summary: string;
-  pros: string[];
-  cons: string[];
-  prognosis: { chance: FitLevel; text: string };
-  emphasize: string[];
-};
+export type FitResult = z.infer<typeof fitSchema>;
 
 /** Was die Passung von einem Stellenangebot braucht */
 export type FitPosting = {
@@ -43,10 +37,7 @@ export type FitPosting = {
 /** Mindestlänge des Anzeigentexts wie in der Edge Function */
 const MIN_DESCRIPTION_CHARS = 80;
 
-export type FitRequest = {
-  profile: ReviewRequest['profile'];
-  posting: { company: string; role: string; location?: string; description: string };
-};
+export type FitRequest = z.infer<typeof fitInputSchema>;
 
 /** Anfrage an `job-fit`: Profil ohne Name und Kontaktdaten, dazu die Eckdaten der Anzeige */
 export function fitRequest(profile: Profile, posting: FitPosting): FitRequest {

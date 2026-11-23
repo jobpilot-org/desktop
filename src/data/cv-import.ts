@@ -1,10 +1,11 @@
-import { parseProfileDraft, type ProfileInput } from '@/domain/profile';
-
+import { invokeAiFunction } from '@jobpilot-org/shared-ai/client/supabase';
 import {
   AiFunctionError,
-  invokeAiFunction,
   type AiFunctionErrorCode,
-} from './ai-function';
+} from '@jobpilot-org/shared-ai/errors';
+
+import { parseProfileDraft, type ProfileInput } from '@/domain/profile';
+
 import type { Supabase } from './supabase';
 
 /** Fehlercodes der Edge Function `cv-import` (backend/supabase/functions/cv-import) */
