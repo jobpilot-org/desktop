@@ -22,8 +22,6 @@ import {
 // eine Antwort, die `parseProfileReview` prüft. Vorschläge mit Ersatztext lassen sich einzeln
 // übernehmen (`applyRewrite`).
 
-// --- Anfrage ---------------------------------------------------------------------------------
-
 /** Anfrage an `profile-review`: Profil ohne Name und Kontaktdaten, nur ob sie vorhanden sind */
 export type ReviewRequest = z.infer<typeof reviewInputSchema>;
 export type ReviewProfile = ReviewRequest['profile'];
@@ -62,8 +60,6 @@ export function reviewRequest(profile: Profile): ReviewRequest {
 export function canReview(profile: Profile) {
   return allEntries(profile).length > 0 || !!profile.summary;
 }
-
-// --- Antwort ---------------------------------------------------------------------------------
 
 export const REVIEW_AREAS = [
   'personal',
@@ -204,8 +200,6 @@ export function parseProfileReview(data: unknown, profile: Profile): ProfileRevi
   }
 }
 
-// --- Übernehmen ------------------------------------------------------------------------------
-
 /** Bisheriger Text des Feldes, das der Vorschlag ersetzt */
 export function currentRewriteText(profile: Profile, rewrite: ReviewRewrite): string | undefined {
   switch (rewrite.field) {
@@ -281,8 +275,6 @@ export function applyRewrite(profile: Profile, rewrite: ReviewRewrite): RewriteC
     }
   }
 }
-
-// --- Selbst bearbeiten -----------------------------------------------------------------------
 
 /** Bearbeiten-Dialog des Profils; ohne Eintrag legt er einen neuen an */
 export type ProfileEditTarget =

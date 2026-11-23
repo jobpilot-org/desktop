@@ -23,6 +23,13 @@ Noch nicht enthalten: KI-Assistent für Bewerbungen, Import/Export (Backup, CSV)
 
 ## Entwicklung
 
+`@jobpilot-org/shared-ai` kommt aus GitHub Packages; vor `npm install` deshalb ein GitHub-Token mit `read:packages` laden (nie in eine Datei schreiben):
+
+```bash
+set -a; . ~/.config/jobpilot/github.env; set +a
+export NODE_AUTH_TOKEN="$GITHUB_PACKAGES_TOKEN"
+```
+
 ```bash
 npm install
 npm start                  # Dev-Modus mit Hot Reload
